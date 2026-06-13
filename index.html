@@ -1,8 +1,9 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <title>FIFA WORLD CUP 2026 - Live Stream</title>     
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
@@ -37,29 +38,70 @@
             object-fit: contain;  
         }  
         
-        /* --- MULTISHOWS WATERMARK CSS --- */
+        /* --- PREMIUM WATERMARK CSS --- */
         .video-watermark {
             position: absolute;
-            top: 20px;          /* উপর থেকে দূরত্ব */
-            right: 20px;        /* ডান দিক থেকে দূরত্ব */
-            background: rgba(0, 0, 0, 0.5); /* হালকা কালো ব্যাকগ্রাউন্ড */
-            color: rgba(255, 255, 255, 0.6); /* টেক্সটের কালার ও ট্রান্সপারেন্সি */
-            padding: 6px 12px;
-            border-radius: 6px;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.55);
+            color: rgba(255, 255, 255, 0.65);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 10;
+            user-select: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* --- CUSTOM LOADER CSS (BOTTOM POSITIONED) --- */
+        .custom-loader {
+            position: absolute;
+            bottom: 80px; /* কন্ট্রোল বারের ঠিক উপরে শো করবে */
+            left: 0;
+            width: 100%;
+            z-index: 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .loading-text {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            padding: 10px 24px;
+            border-radius: 30px;
+            color: #00ff88;
             font-size: 14px;
             font-weight: 700;
             letter-spacing: 1px;
-            pointer-events: none; /* ওয়াটারমার্কে যেন ক্লিক না লাগে */
-            z-index: 10;         /* ভিডিওর উপরে থাকার জন্য */
-            user-select: none;   /* টেক্সট যেন সিলেক্ট করা না যায় */
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .loading-text span {
+            animation: pulse-dot 1.4s infinite both;
+            font-size: 18px;
+            line-height: 1;
+        }
+        .loading-text span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-text span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 0.2; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-3px); }
         }
 
-        /* ডিফল্ট বাফারিং স্পিনার হাইড করার জন্য */
-        .shaka-spinner-container,  
-        .shaka-spinner,  
-        .shaka-spinner-svg {  
+        /* Hide Shaka Default Spinner completely */
+        .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg {  
             display: none !important;  
             visibility: hidden !important;  
             opacity: 0 !important;  
@@ -72,6 +114,12 @@
         
         <div class="video-watermark">MultiShows</div>
 
+        <div id="loadingOverlay" class="custom-loader">
+            <div class="loading-text">
+                LOADING, PLEASE WAIT<span>.</span><span>.</span><span>.</span>
+            </div>
+        </div>
+
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
     </div>  
   
@@ -81,11 +129,13 @@
         
             if (!shaka.Player.isBrowserSupported()) {  
                 console.error('Browser not supported');  
+                document.querySelector('.loading-text').innerHTML = "<span style='color:#E11D48;'>BROWSER NOT SUPPORTED</span>";
                 return;  
             }  
         
             const video = document.getElementById('video');  
             const container = document.querySelector('.shaka-video-container');  
+            const loader = document.getElementById('loadingOverlay');
             
             const player = new shaka.Player(video);  
             const ui = new shaka.ui.Overlay(player, container, video);  
@@ -97,17 +147,17 @@
                     'quality', 'fullscreen'  
                 ],  
                 volumeBarColors: {  
-                    base: 'rgba(0, 136, 255, 0.3)',  
+                    base: 'rgba(0, 136, 255, 0.25)',  
                     level: 'rgb(0, 136, 255)'  
                 },  
                 seekBarColors: {
-                    base: 'rgba(90, 0, 0, 0.3)',
-                    buffered: 'rgba(120, 0, 0, 0.6)',
-                    played: 'rgb(170, 0, 0)'
+                    base: 'rgba(255, 255, 255, 0.2)',
+                    buffered: 'rgba(255, 255, 255, 0.4)',
+                    played: 'rgb(0, 136, 255)' /* মাল্টিশো ব্র্যান্ডিং থিমের সাথে মিল রেখে ব্লু বার */
                 }
             });  
         
-            // DRM Configurations
+            // DRM Key Config
             let drmConfig = {  
                 clearKeys: {  
                     "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"  
@@ -120,9 +170,9 @@
                 drm: drmConfig,  
                 streaming: {  
                     lowLatencyMode: true,  
-                    bufferingGoal: 15,  
-                    rebufferingGoal: 2,  
-                    bufferBehind: 15,  
+                    bufferingGoal: 12,  
+                    rebufferingGoal: 2.5,  
+                    bufferBehind: 10,  
                     retryParameters: {  
                         timeout: 10000,  
                         maxAttempts: 5,  
@@ -136,13 +186,20 @@
                 manifest: {  
                     retryParameters: {  
                         timeout: 8000,  
-                        maxAttempts: 3  
+                        maxAttempts: 4  
                     }  
                 }  
             });  
         
+            // --- SMART LOADER LOGIC ---
+            video.addEventListener('playing', () => { loader.style.opacity = '0'; });
+            video.addEventListener('canplay', () => { loader.style.opacity = '0'; });
+            video.addEventListener('waiting', () => { loader.style.opacity = '1'; }); // বাফারিং হলে শো করবে
+
             player.addEventListener('error', (event) => {  
                 console.error('Shaka Player Error:', event.detail);  
+                document.querySelector('.loading-text').innerHTML = "<span style='color:#E11D48;'>STREAM ERROR / EXPIRED</span>";
+                loader.style.opacity = '1';
             });  
         
             try {  
@@ -150,6 +207,8 @@
                 console.log("Stream loaded successfully");  
             } catch (error) {  
                 console.error('Load error:', error);  
+                document.querySelector('.loading-text').innerHTML = "<span style='color:#E11D48;'>FAILED TO LOAD STREAM</span>";
+                loader.style.opacity = '1';
             }  
         });  
     </script>  
