@@ -56,7 +56,7 @@
             backdrop-filter: blur(5px);
         }
 
-        /* --- STYLISH ERRROR / LOADING OVERLAY --- */
+        /* --- STYLISH OVERLAY --- */
         .custom-overlay {
             position: absolute;
             bottom: 70px;
@@ -79,8 +79,7 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
 
-        /* Video.js UI Customization to match MultiShows Blue Theme */
-        .vjs-matrix.video-js { color: #0088ff; }
+        /* UI Theme Fixes */
         .vjs-theme-city .vjs-play-progress { background: #0088ff !important; }
         .vjs-theme-city .vjs-volume-level { background: #0088ff !important; }
         .vjs-theme-city .vjs-big-play-button { 
@@ -109,19 +108,19 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const player = videojs('my-video', {
-                fluid: false,
                 autoplay: true,
                 controls: true,
                 responsive: true,
                 loadingSpinner: true
             });
 
-            // EME (DRM) Plugin Initialize
+            // EME Plugin Initialize
             player.eme();
 
-            // --- DRM CONFIGURATION (ClearKeys) ---
+            // --- CORRECT VIDEO.JS CLEARKEY SYNTAX ---
             const drmConfig = {
                 "org.w3.clearkey": {
+                    // Video.js-এ ক্লিয়ারকি সেট করার আসল নিয়ম হলো clearkeys অবজেক্ট পাস করা
                     clearkeys: {
                         "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"
                     }
@@ -130,18 +129,15 @@
 
             const streamUrl = "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd";
 
-            // Load Stream with DRM
             player.src({
                 src: streamUrl,
                 type: 'application/dash+xml',
                 keySystems: drmConfig
             });
 
-            // UI Elements
             const overlay = document.getElementById('statusOverlay');
             const statusText = document.getElementById('statusText');
 
-            // Player Events
             player.on('waiting', () => {
                 statusText.innerText = "BUFFERING, PLEASE WAIT...";
                 statusText.style.color = "#00ff88";
@@ -153,6 +149,7 @@
             player.on('canplay', () => { overlay.style.display = "none"; });
 
             player.on('error', () => {
+                // পুরানো বা এক্সপায়ার্ড লিংকের জন্য এরর হ্যান্ডলিং
                 statusText.innerText = "STREAM ERROR / EXPIRED";
                 statusText.style.color = "#E11D48";
                 statusText.style.borderColor = "rgba(225, 29, 72, 0.3)";
