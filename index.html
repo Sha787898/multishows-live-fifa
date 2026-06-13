@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <title>FIFA WORLD CUP 2026 - Live Stream</title>     
+    <title>FIFA WORLD CUP 2026 - Live</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
-    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/@videojs/themes@1.0.1/city/index.css" rel="stylesheet">
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FMP9REY96D"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -17,200 +17,148 @@
       gtag('config', 'G-FMP9REY96D');
     </script>
 
-    <style>  
-        * { margin: 0; padding: 0; box-sizing: border-box; }  
-        html, body {  
-            background: #000;  
-            height: 100%;  
-            width: 100%;  
-            overflow: hidden;  
-            font-family: system-ui, -apple-system, sans-serif;  
-        }  
-        .shaka-video-container {  
-            position: relative;  
-            width: 100%;  
-            height: 100vh;  
-        }  
-        video {  
-            width: 100%;  
-            height: 100%;  
-            background: #000;  
-            object-fit: contain;  
-        }  
-        
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            background: #000;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+        .video-js {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
         /* --- PREMIUM WATERMARK CSS --- */
         .video-watermark {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.55);
-            color: rgba(255, 255, 255, 0.65);
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            color: rgba(255, 255, 255, 0.7);
             padding: 6px 14px;
             border-radius: 30px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 800;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             pointer-events: none;
-            z-index: 10;
+            z-index: 999;
             user-select: none;
             border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        /* --- CUSTOM LOADER CSS (BOTTOM POSITIONED) --- */
-        .custom-loader {
+        /* --- STYLISH ERRROR / LOADING OVERLAY --- */
+        .custom-overlay {
             position: absolute;
-            bottom: 80px; /* কন্ট্রোল বারের ঠিক উপরে শো করবে */
-            left: 0;
-            width: 100%;
-            z-index: 9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            display: none;
         }
-        .loading-text {
-            background: rgba(0, 0, 0, 0.75);
+        .msg-box {
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(6px);
-            padding: 10px 24px;
+            padding: 8px 20px;
             border-radius: 30px;
             color: #00ff88;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            border: 1px solid rgba(0, 255, 136, 0.25);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-        .loading-text span {
-            animation: pulse-dot 1.4s infinite both;
-            font-size: 18px;
-            line-height: 1;
-        }
-        .loading-text span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-text span:nth-child(3) { animation-delay: 0.4s; }
-        
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 0.2; transform: translateY(0); }
-            50% { opacity: 1; transform: translateY(-3px); }
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
 
-        /* Hide Shaka Default Spinner completely */
-        .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg {  
-            display: none !important;  
-            visibility: hidden !important;  
-            opacity: 0 !important;  
-        }  
-    </style>  
-</head>  
-<body>  
+        /* Video.js UI Customization to match MultiShows Blue Theme */
+        .vjs-matrix.video-js { color: #0088ff; }
+        .vjs-theme-city .vjs-play-progress { background: #0088ff !important; }
+        .vjs-theme-city .vjs-volume-level { background: #0088ff !important; }
+        .vjs-theme-city .vjs-big-play-button { 
+            background: rgba(0, 136, 255, 0.8) !important; 
+            border-radius: 50% !important;
+            width: 60px !important; height: 60px !important;
+            line-height: 60px !important; margin-top: -30px !important; margin-left: -30px !important;
+        }
+    </style>
+</head>
+<body>
 
-    <div class="shaka-video-container" data-shaka-player-container>  
-        
+    <div class="video-container">
         <div class="video-watermark">MultiShows</div>
 
-        <div id="loadingOverlay" class="custom-loader">
-            <div class="loading-text">
-                LOADING, PLEASE WAIT<span>.</span><span>.</span><span>.</span>
-            </div>
+        <div id="statusOverlay" class="custom-overlay">
+            <div id="statusText" class="msg-box">LOADING...</div>
         </div>
 
-        <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
-    </div>  
-  
-    <script>  
-        document.addEventListener('DOMContentLoaded', async () => {  
-            shaka.polyfill.installAll();  
-        
-            if (!shaka.Player.isBrowserSupported()) {  
-                console.error('Browser not supported');  
-                document.querySelector('.loading-text').innerHTML = "<span style='color:#E11D48;'>BROWSER NOT SUPPORTED</span>";
-                return;  
-            }  
-        
-            const video = document.getElementById('video');  
-            const container = document.querySelector('.shaka-video-container');  
-            const loader = document.getElementById('loadingOverlay');
-            
-            const player = new shaka.Player(video);  
-            const ui = new shaka.ui.Overlay(player, container, video);  
-        
-            ui.configure({  
-                controlPanelElements: [  
-                    'play_pause', 'time_and_duration', 'mute', 'volume',  
-                    'spacer', 'language', 'captions', 'picture_in_picture',  
-                    'quality', 'fullscreen'  
-                ],  
-                volumeBarColors: {  
-                    base: 'rgba(0, 136, 255, 0.25)',  
-                    level: 'rgb(0, 136, 255)'  
-                },  
-                seekBarColors: {
-                    base: 'rgba(255, 255, 255, 0.2)',
-                    buffered: 'rgba(255, 255, 255, 0.4)',
-                    played: 'rgb(0, 136, 255)' /* মাল্টিশো ব্র্যান্ডিং থিমের সাথে মিল রেখে ব্লু বার */
-                }
-            });  
-        
-            // DRM Key Config
-            let drmConfig = {  
-                clearKeys: {  
-                    "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"  
-                }  
-            };  
-        
-            let streamUrl = "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd";  
-        
-            player.configure({  
-                drm: drmConfig,  
-                streaming: {  
-                    lowLatencyMode: true,  
-                    bufferingGoal: 12,  
-                    rebufferingGoal: 2.5,  
-                    bufferBehind: 10,  
-                    retryParameters: {  
-                        timeout: 10000,  
-                        maxAttempts: 5,  
-                        baseDelay: 300,  
-                        backoffFactor: 1.2  
-                    },  
-                    segmentRequestTimeout: 8000,  
-                    segmentPrefetchLimit: 2,  
-                    useNativeHlsOnSafari: true  
-                },  
-                manifest: {  
-                    retryParameters: {  
-                        timeout: 8000,  
-                        maxAttempts: 4  
-                    }  
-                }  
-            });  
-        
-            // --- SMART LOADER LOGIC ---
-            video.addEventListener('playing', () => { loader.style.opacity = '0'; });
-            video.addEventListener('canplay', () => { loader.style.opacity = '0'; });
-            video.addEventListener('waiting', () => { loader.style.opacity = '1'; }); // বাফারিং হলে শো করবে
+        <video id="my-video" class="video-js vjs-theme-city vjs-big-play-centered" controls autoplay playsinline preload="auto" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>
+    </div>
 
-            player.addEventListener('error', (event) => {  
-                console.error('Shaka Player Error:', event.detail);  
-                document.querySelector('.loading-text').innerHTML = "<span style='color:#E11D48;'>STREAM ERROR / EXPIRED</span>";
-                loader.style.opacity = '1';
-            });  
-        
-            try {  
-                await player.load(streamUrl);  
-                console.log("Stream loaded successfully");  
-            } catch (error) {  
-                console.error('Load error:', error);  
-                document.querySelector('.loading-text').innerHTML = "<span style='color:#E11D48;'>FAILED TO LOAD STREAM</span>";
-                loader.style.opacity = '1';
-            }  
-        });  
-    </script>  
-</body>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
+    <script src="https://unpkg.com/videojs-contrib-eme@5.4.1/dist/videojs-contrib-eme.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const player = videojs('my-video', {
+                fluid: false,
+                autoplay: true,
+                controls: true,
+                responsive: true,
+                loadingSpinner: true
+            });
+
+            // EME (DRM) Plugin Initialize
+            player.eme();
+
+            // --- DRM CONFIGURATION (ClearKeys) ---
+            const drmConfig = {
+                "org.w3.clearkey": {
+                    clearkeys: {
+                        "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"
+                    }
+                }
+            };
+
+            const streamUrl = "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd";
+
+            // Load Stream with DRM
+            player.src({
+                src: streamUrl,
+                type: 'application/dash+xml',
+                keySystems: drmConfig
+            });
+
+            // UI Elements
+            const overlay = document.getElementById('statusOverlay');
+            const statusText = document.getElementById('statusText');
+
+            // Player Events
+            player.on('waiting', () => {
+                statusText.innerText = "BUFFERING, PLEASE WAIT...";
+                statusText.style.color = "#00ff88";
+                statusText.style.borderColor = "rgba(0, 255, 136, 0.3)";
+                overlay.style.display = "block";
+            });
+
+            player.on('playing', () => { overlay.style.display = "none"; });
+            player.on('canplay', () => { overlay.style.display = "none"; });
+
+            player.on('error', () => {
+                statusText.innerText = "STREAM ERROR / EXPIRED";
+                statusText.style.color = "#E11D48";
+                statusText.style.borderColor = "rgba(225, 29, 72, 0.3)";
+                overlay.style.display = "block";
+            });
+        });
+    </script>
+</body>
 </html>
