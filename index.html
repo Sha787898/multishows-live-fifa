@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <title>FIFA WORLD CUP 2026 - Live</title>
+    <title>MultiShows Premium Live Stream</title>     
     
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video-js.min.css" rel="stylesheet">
-    <link href="https://unpkg.com/@videojs/themes@1.0.1/city/index.css" rel="stylesheet">
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-FMP9REY96D"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -17,173 +18,210 @@
       gtag('config', 'G-FMP9REY96D');
     </script>
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body {
-            background: #000;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        .video-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-        }
-        .video-js {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* --- PREMIUM WATERMARK CSS --- */
+    <style>  
+        * { margin: 0; padding: 0; box-sizing: border-box; }  
+        html, body {  
+            background: #000;  
+            height: 100%;  
+            width: 100%;  
+            overflow: hidden;  
+            font-family: system-ui, -apple-system, sans-serif;  
+        }  
+        .shaka-video-container {  
+            position: relative;  
+            width: 100%;  
+            height: 100vh;  
+        }  
+        video {  
+            width: 100%;  
+            height: 100%;  
+            background: #000;  
+            object-fit: contain;  
+        }  
+        
+        /* --- PREMIUM WATERMARK --- */
         .video-watermark {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 20px;
+            right: 20px;
             background: rgba(0, 0, 0, 0.6);
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.65);
             padding: 6px 14px;
             border-radius: 30px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 800;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             pointer-events: none;
-            z-index: 999;
+            z-index: 10;
             user-select: none;
             border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        /* --- STYLISH OVERLAY --- */
-        .custom-overlay {
+        /* --- ADVANCED LOCK SCREEN BUTTON --- */
+        .player-lock-btn {
             position: absolute;
-            bottom: 70px;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+        .player-lock-btn:hover { background: #0088ff; border-color: #0088ff; }
+        .player-locked .shaka-controls-container { display: none !important; }
+
+        /* --- MULTISHOWS BRANDING THEME OVERRIDES --- */
+        .shaka-overflow-menu, .shaka-settings-menu {
+            background: rgba(10, 10, 10, 0.85) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7) !important;
+        }
+        .shaka-overflow-menu button:hover, .shaka-settings-menu button:hover {
+            background: rgba(0, 136, 255, 0.2) !important;
+            color: #0088ff !important;
+        }
+        .shaka-bottom-controls {
+            padding: 0 15px 10px 15px !important;
+        }
+        
+        /* Neon Blue Progress Bars */
+        .shaka-volume-bar-container .shaka-volume-bar-level { background: #0088ff !important; }
+        .shaka-seek-bar-container .shaka-seek-bar-played { background: #0088ff !important; box-shadow: 0 0 8px #0088ff; }
+        
+        /* --- STATUS MESSAGES --- */
+        .custom-loader {
+            position: absolute;
+            bottom: 85px; 
             left: 50%;
             transform: translateX(-50%);
-            z-index: 99;
+            z-index: 9;
             pointer-events: none;
-            display: none;
+            transition: opacity 0.3s ease;
         }
-        .msg-box {
+        .loading-text {
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(6px);
-            padding: 8px 20px;
+            padding: 10px 24px;
             border-radius: 30px;
             color: #00ff88;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: 1px;
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            border: 1px solid rgba(0, 255, 136, 0.25);
         }
 
-        /* UI Theme Fixes */
-        .vjs-theme-city .vjs-play-progress { background: #0088ff !important; }
-        .vjs-theme-city .vjs-volume-level { background: #0088ff !important; }
-        .vjs-theme-city .vjs-big-play-button { 
-            background: rgba(0, 136, 255, 0.8) !important; 
-            border-radius: 50% !important;
-            width: 60px !important; height: 60px !important;
-            line-height: 60px !important; margin-top: -30px !important; margin-left: -30px !important;
-        }
-    </style>
-</head>
-<body>
+        /* Hide Default Loading Spinner */
+        .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }  
+    </style>  
+</head>  
+<body>  
 
-    <div class="video-container">
+    <div class="shaka-video-container" data-shaka-player-container id="playerContainer">  
         <div class="video-watermark">MultiShows</div>
 
-        <div id="statusOverlay" class="custom-overlay">
-            <div id="statusText" class="msg-box">LOADING...</div>
+        <button class="player-lock-btn" id="lockBtn">
+            <span class="material-icons" id="lockIcon">lock_open</span>
+        </button>
+
+        <div id="loadingOverlay" class="custom-loader">
+            <div id="statusText" class="loading-text">LOADING MULTISHOWS PLAYER...</div>
         </div>
 
-        <video id="my-video" class="video-js vjs-theme-city vjs-big-play-centered" controls autoplay playsinline preload="auto" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>
-    </div>
+        <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
+    </div>  
+  
+    <script>  
+        let isLocked = false;
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.10.0/video.min.js"></script>
-    <script src="https://unpkg.com/videojs-contrib-eme@5.4.1/dist/videojs-contrib-eme.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const player = videojs('my-video', {
-                autoplay: true,
-                controls: true,
-                responsive: true,
-                loadingSpinner: true,
-                html5: {
-                    vhs: {
-                        overrideNative: true
-                    }
-                }
-            });
-
-            // Initialize EME Plugin
-            player.eme();
-
-            // --- FIXED FORMAT FOR KEYSYSTEMS ---
-            const keyIdHex = "549ab7cd35a64bb6bb479ecead04d69d";
-            const keyHex = "829799ed534d11fcadeb4b192467e050";
-
-            // Hex থেকে Base64Url এ রূপান্তর করার ফাংশন (আইফ্রেম এবং ইএমই সুরক্ষার জন্য বাধ্যতামূলক)
-            function hexToBase64Url(hex) {
-                let binary = '';
-                for (let i = 0; i < hex.length; i += 2) {
-                    binary += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-                }
-                return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-            }
-
-            const keyIdB64 = hexToBase64Url(keyIdHex);
-            const keyB64 = hexToBase64Url(keyHex);
-
-            const drmConfig = {
-                "org.w3.clearkey": {
-                    videoCapabilities: [{contentType: 'video/mp4; codecs="avc1.4d401f"'}],
-                    audioCapabilities: [{contentType: 'audio/mp4; codecs="mp4a.40.2"'}],
-                    getLicense: function(emeOptions, keyMessage, callback) {
-                        const license = {
-                            keys: [{
-                                kty: 'oct',
-                                kid: keyIdB64,
-                                k: keyB64
-                            }],
-                            type: emeOptions.keySystem
-                        };
-                        callback(null, new TextEncoder().encode(JSON.stringify(license)));
-                    }
-                }
-            };
-
-            const streamUrl = "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd";
-
-            player.src({
-                src: streamUrl,
-                type: 'application/dash+xml',
-                keySystems: drmConfig
-            });
-
-            const overlay = document.getElementById('statusOverlay');
+        document.addEventListener('DOMContentLoaded', async () => {  
+            shaka.polyfill.installAll();  
+            if (!shaka.Player.isBrowserSupported()) return;  
+        
+            const video = document.getElementById('video');  
+            const container = document.getElementById('playerContainer');  
+            const loader = document.getElementById('loadingOverlay');
             const statusText = document.getElementById('statusText');
+            const lockBtn = document.getElementById('lockBtn');
+            const lockIcon = document.getElementById('lockIcon');
+            
+            const player = new shaka.Player(video);  
+            const ui = new shaka.ui.Overlay(player, container, video);  
+        
+            ui.configure({  
+                controlPanelElements: [  
+                    'play_pause', 'time_and_duration', 'mute', 'volume',  
+                    'spacer', 'language', 'captions', 'picture_in_picture',  
+                    'quality', 'fullscreen'  
+                ],  
+                volumeBarColors: { base: 'rgba(0, 136, 255, 0.25)', level: 'rgb(0, 136, 255)' },  
+                seekBarColors: { base: 'rgba(255, 255, 255, 0.2)', buffered: 'rgba(255, 255, 255, 0.4)', played: 'rgb(0, 136, 255)' }
+            });  
+        
+            // DRM Configuration
+            let drmConfig = {  
+                clearKeys: {  
+                    "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"  
+                }
+            };  
+        
+            let streamUrl = "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd";  
+        
+            player.configure({  
+                drm: drmConfig,  
+                streaming: {  
+                    lowLatencyMode: true,  
+                    bufferingGoal: 12,  
+                    rebufferingGoal: 2.5,  
+                    bufferBehind: 10,
+                    crossOrigin: 'anonymous'
+                }  
+            });  
+        
+            // Custom Loader Handle
+            video.addEventListener('playing', () => { loader.style.opacity = '0'; });
+            video.addEventListener('waiting', () => { statusText.innerText = "BUFFERING MATCH..."; loader.style.opacity = '1'; });
 
-            player.on('waiting', () => {
-                statusText.innerText = "BUFFERING, PLEASE WAIT...";
-                statusText.style.color = "#00ff88";
-                statusText.style.borderColor = "rgba(0, 255, 136, 0.3)";
-                overlay.style.display = "block";
+            player.addEventListener('error', (event) => {  
+                statusText.innerHTML = "<span style='color:#E11D48;'>STREAM OFFLINE / EXPIRED</span>";
+                loader.style.opacity = '1';
+            });  
+        
+            try {  
+                await player.load(streamUrl);  
+            } catch (error) {
+                statusText.innerHTML = "<span style='color:#E11D48;'>FAILED TO LOAD STREAM</span>";
+                loader.style.opacity = '1';
+            }  
+
+            // --- LOCK SCREEN JAVASCRIPT ---
+            lockBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                isLocked = !isLocked;
+                if(isLocked) {
+                    container.classList.add('player-locked');
+                    lockIcon.innerText = 'lock';
+                    lockBtn.style.background = '#E11D48'; // লকড অবস্থায় লাল বাটন
+                } else {
+                    container.classList.remove('player-locked');
+                    lockIcon.innerText = 'lock_open';
+                    lockBtn.style.background = 'rgba(0, 0, 0, 0.6)';
+                }
             });
-
-            player.on('playing', () => { overlay.style.display = "none"; });
-            player.on('canplay', () => { overlay.style.display = "none"; });
-
-            player.on('error', () => {
-                statusText.innerText = "STREAM ERROR / EXPIRED";
-                statusText.style.color = "#E11D48";
-                statusText.style.borderColor = "rgba(225, 29, 72, 0.3)";
-                overlay.style.display = "block";
-            });
-        });
-    </script>
-</body>
+        });  
+    </script>  
+</body>  
 </html>
