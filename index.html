@@ -111,18 +111,47 @@
                 autoplay: true,
                 controls: true,
                 responsive: true,
-                loadingSpinner: true
+                loadingSpinner: true,
+                html5: {
+                    vhs: {
+                        overrideNative: true
+                    }
+                }
             });
 
-            // EME Plugin Initialize
+            // Initialize EME Plugin
             player.eme();
 
-            // --- CORRECT VIDEO.JS CLEARKEY SYNTAX ---
+            // --- FIXED FORMAT FOR KEYSYSTEMS ---
+            const keyIdHex = "549ab7cd35a64bb6bb479ecead04d69d";
+            const keyHex = "829799ed534d11fcadeb4b192467e050";
+
+            // Hex থেকে Base64Url এ রূপান্তর করার ফাংশন (আইফ্রেম এবং ইএমই সুরক্ষার জন্য বাধ্যতামূলক)
+            function hexToBase64Url(hex) {
+                let binary = '';
+                for (let i = 0; i < hex.length; i += 2) {
+                    binary += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+                }
+                return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+            }
+
+            const keyIdB64 = hexToBase64Url(keyIdHex);
+            const keyB64 = hexToBase64Url(keyHex);
+
             const drmConfig = {
                 "org.w3.clearkey": {
-                    // Video.js-এ ক্লিয়ারকি সেট করার আসল নিয়ম হলো clearkeys অবজেক্ট পাস করা
-                    clearkeys: {
-                        "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"
+                    videoCapabilities: [{contentType: 'video/mp4; codecs="avc1.4d401f"'}],
+                    audioCapabilities: [{contentType: 'audio/mp4; codecs="mp4a.40.2"'}],
+                    getLicense: function(emeOptions, keyMessage, callback) {
+                        const license = {
+                            keys: [{
+                                kty: 'oct',
+                                kid: keyIdB64,
+                                k: keyB64
+                            }],
+                            type: emeOptions.keySystem
+                        };
+                        callback(null, new TextEncoder().encode(JSON.stringify(license)));
                     }
                 }
             };
@@ -149,7 +178,6 @@
             player.on('canplay', () => { overlay.style.display = "none"; });
 
             player.on('error', () => {
-                // পুরানো বা এক্সপায়ার্ড লিংকের জন্য এরর হ্যান্ডলিং
                 statusText.innerText = "STREAM ERROR / EXPIRED";
                 statusText.style.color = "#E11D48";
                 statusText.style.borderColor = "rgba(225, 29, 72, 0.3)";
