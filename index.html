@@ -50,25 +50,25 @@
             z-index: 1;
         }
         
-        /* --- PREMIUM CLICKABLE TELEGRAM WATERMARK --- */
+        /* --- SMALLER TELEGRAM WATERMARK (RIGHT SIDE) --- */
         .video-watermark {
             position: absolute;
-            top: 55px; /* আইফ্রেম রেস্ট্রিকশন এবং টপ বাটন থেকে নিচে নামানো হলো */
-            right: 15px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 12px;
-            border-radius: 20px;
-            z-index: 10;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(6px);
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 10px;
+            border-radius: 6px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
             text-decoration: none !important;
             transition: all 0.2s ease;
         }
         .video-watermark span {
             color: rgba(255, 255, 255, 0.7);
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
+            font-size: 9.5px; /* সাইজ ছোট করা হয়েছে */
+            font-weight: 700;
+            letter-spacing: 1px;
             text-transform: uppercase;
             display: inline-block;
         }
@@ -80,96 +80,82 @@
             color: #fff;
         }
 
-        /* --- FIXED TOP PANEL (SAFE AREA FOR IFRAME) --- */
+        /* --- FIXED SERVER SWITCH PANEL (LEFT SIDE - INDEPENDENT) --- */
         .top-left-panel {
             position: absolute;
-            top: 50px; /* আইফ্রেমের টপ বাউন্ডারি এড়াতে ৫০ পিক্সেল নিচে নামানো হয়েছে */
-            left: 15px;
+            top: 12px; 
+            left: 12px;
             z-index: 100;
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
         }
 
         .top-btn {
-            background: rgba(12, 12, 12, 0.85);
-            border: 1px solid rgba(225, 29, 72, 0.3);
-            color: rgba(255, 255, 255, 0.9);
-            height: 32px;
-            padding: 0 12px;
-            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+            height: 24px; /* ওয়াটারমার্কের সাথে সামঞ্জস্যপূর্ণ হাইট */
+            padding: 0 10px;
+            border-radius: 6px; 
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            gap: 4px;
+            backdrop-filter: blur(4px);
             transition: all 0.2s ease;
-            font-size: 11px;
+            font-size: 9.5px; /* ওয়াটারমার্কের সমান ফ্রন্ট সাইজ */
             font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
         .top-btn.btn-circle {
-            width: 32px;
+            width: 24px;
             padding: 0;
-            border-radius: 50%;
         }
-        .top-btn span { font-size: 16px; } 
-        .top-btn:hover { background: #E11D48; color: #fff; border-color: #E11D48; }
+        .top-btn span.material-icons { font-size: 12px; } 
+        .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; }
 
-        /* লক বাটন সেটিংস */
+        /* লক বাটন কন্ট্রোল */
         #lockBtn { display: none; }
         .is-fullscreen #lockBtn { display: flex; }
 
-        /* শাকা প্লেয়ার কন্ট্রোলস শো হলে বাটন প্যানেল শো হবে */
-        .shaka-controls-container[show-controls="true"] ~ .top-left-panel {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        .player-locked .top-left-panel {
-            opacity: 1 !important;
-            pointer-events: auto !important;
-        }
         .player-locked #customFullscreenBtn, .player-locked #serverMenuBtn { display: none !important; }
-        .player-locked #lockBtn { background: #E11D48 !important; border-color: #E11D48 !important; color: #fff; }
+        .player-locked #lockBtn { background: #E11D48 !important; border-color: #E11D48 !important; color: #fff; height: 28px; width: 28px; }
+        .player-locked #lockBtn span { font-size: 15px; }
         .player-locked .shaka-controls-container { display: none !important; }
 
-        /* --- PREVENT CUTTING: SERVER POPUP INSIDE CONTROLS --- */
+        /* --- SERVER DROP-DOWN MENU --- */
         .server-popup {
             position: absolute;
-            top: 88px; /* বাটনের ঠিক নিচে নিখুঁত পজিশনিং */
-            left: 15px;
-            background: rgba(12, 12, 12, 0.96);
+            top: 42px; 
+            left: 12px;
+            background: rgba(10, 10, 10, 0.98);
             backdrop-filter: blur(14px);
             border: 1px solid rgba(225, 29, 72, 0.3);
-            border-radius: 12px;
-            padding: 8px;
+            border-radius: 8px;
+            padding: 5px;
             display: none;
             flex-direction: column;
-            gap: 6px;
-            min-width: 140px;
+            gap: 4px;
+            min-width: 110px;
             z-index: 101;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
         }
         .server-popup button {
             background: transparent;
             border: none;
             color: #ffffff;
-            padding: 8px 14px;
+            padding: 6px 10px;
             text-align: left;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
         .server-popup button:hover {
             background: rgba(225, 29, 72, 0.2);
@@ -268,11 +254,11 @@
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
         
         <div class="top-left-panel">
-            <button class="top-btn btn-circle" id="customFullscreenBtn" title="Toggle Fullscreen">
-                <span class="material-icons" id="fsIcon">fullscreen</span>
-            </button>
             <button class="top-btn" id="serverMenuBtn" title="Change Server">
                 <span class="material-icons">dns</span> <span id="currentServerLabel">SERVER 1</span>
+            </button>
+            <button class="top-btn btn-circle" id="customFullscreenBtn" title="Toggle Fullscreen">
+                <span class="material-icons" id="fsIcon">fullscreen</span>
             </button>
             <button class="top-btn btn-circle" id="lockBtn" title="Lock Screen">
                 <span class="material-icons" id="lockIcon">lock_open</span>
@@ -303,7 +289,7 @@
 
         let currentServerIndex = 0;
         let fallbackTimer = null;
-        const LOAD_TIMEOUT = 15000; // ১৫ সেকেন্ড
+        const LOAD_TIMEOUT = 15000; 
 
         document.addEventListener('DOMContentLoaded', async () => {  
             shaka.polyfill.installAll();  
