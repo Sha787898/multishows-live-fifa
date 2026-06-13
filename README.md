@@ -1,1 +1,157 @@
-# multishows-live-fifa
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA WORLD CUP 2026 - Live Stream</title>     
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FMP9REY96D"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-FMP9REY96D');
+    </script>
+
+    <style>  
+        * { margin: 0; padding: 0; box-sizing: border-box; }  
+        html, body {  
+            background: #000;  
+            height: 100%;  
+            width: 100%;  
+            overflow: hidden;  
+            font-family: system-ui, -apple-system, sans-serif;  
+        }  
+        .shaka-video-container {  
+            position: relative;  
+            width: 100%;  
+            height: 100vh;  
+        }  
+        video {  
+            width: 100%;  
+            height: 100%;  
+            background: #000;  
+            object-fit: contain;  
+        }  
+        
+        /* --- MULTISHOWS WATERMARK CSS --- */
+        .video-watermark {
+            position: absolute;
+            top: 20px;          /* উপর থেকে দূরত্ব */
+            right: 20px;        /* ডান দিক থেকে দূরত্ব */
+            background: rgba(0, 0, 0, 0.5); /* হালকা কালো ব্যাকগ্রাউন্ড */
+            color: rgba(255, 255, 255, 0.6); /* টেক্সটের কালার ও ট্রান্সপারেন্সি */
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            pointer-events: none; /* ওয়াটারমার্কে যেন ক্লিক না লাগে */
+            z-index: 10;         /* ভিডিওর উপরে থাকার জন্য */
+            user-select: none;   /* টেক্সট যেন সিলেক্ট করা না যায় */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+        }
+
+        /* ডিফল্ট বাফারিং স্পিনার হাইড করার জন্য */
+        .shaka-spinner-container,  
+        .shaka-spinner,  
+        .shaka-spinner-svg {  
+            display: none !important;  
+            visibility: hidden !important;  
+            opacity: 0 !important;  
+        }  
+    </style>  
+</head>  
+<body>  
+
+    <div class="shaka-video-container" data-shaka-player-container>  
+        
+        <div class="video-watermark">MultiShows</div>
+
+        <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
+    </div>  
+  
+    <script>  
+        document.addEventListener('DOMContentLoaded', async () => {  
+            shaka.polyfill.installAll();  
+        
+            if (!shaka.Player.isBrowserSupported()) {  
+                console.error('Browser not supported');  
+                return;  
+            }  
+        
+            const video = document.getElementById('video');  
+            const container = document.querySelector('.shaka-video-container');  
+            
+            const player = new shaka.Player(video);  
+            const ui = new shaka.ui.Overlay(player, container, video);  
+        
+            ui.configure({  
+                controlPanelElements: [  
+                    'play_pause', 'time_and_duration', 'mute', 'volume',  
+                    'spacer', 'language', 'captions', 'picture_in_picture',  
+                    'quality', 'fullscreen'  
+                ],  
+                volumeBarColors: {  
+                    base: 'rgba(0, 136, 255, 0.3)',  
+                    level: 'rgb(0, 136, 255)'  
+                },  
+                seekBarColors: {
+                    base: 'rgba(90, 0, 0, 0.3)',
+                    buffered: 'rgba(120, 0, 0, 0.6)',
+                    played: 'rgb(170, 0, 0)'
+                }
+            });  
+        
+            // DRM Configurations
+            let drmConfig = {  
+                clearKeys: {  
+                    "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"  
+                }  
+            };  
+        
+            let streamUrl = "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd";  
+        
+            player.configure({  
+                drm: drmConfig,  
+                streaming: {  
+                    lowLatencyMode: true,  
+                    bufferingGoal: 15,  
+                    rebufferingGoal: 2,  
+                    bufferBehind: 15,  
+                    retryParameters: {  
+                        timeout: 10000,  
+                        maxAttempts: 5,  
+                        baseDelay: 300,  
+                        backoffFactor: 1.2  
+                    },  
+                    segmentRequestTimeout: 8000,  
+                    segmentPrefetchLimit: 2,  
+                    useNativeHlsOnSafari: true  
+                },  
+                manifest: {  
+                    retryParameters: {  
+                        timeout: 8000,  
+                        maxAttempts: 3  
+                    }  
+                }  
+            });  
+        
+            player.addEventListener('error', (event) => {  
+                console.error('Shaka Player Error:', event.detail);  
+            });  
+        
+            try {  
+                await player.load(streamUrl);  
+                console.log("Stream loaded successfully");  
+            } catch (error) {  
+                console.error('Load error:', error);  
+            }  
+        });  
+    </script>  
+</body>  
+</html>
