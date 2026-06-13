@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>MultiShows Ultimate Player</title>     
+    <title>MultiShows Premium Stream</title>     
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css">
@@ -53,110 +53,121 @@
         /* --- PREMIUM WATERMARK --- */
         .video-watermark {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0, 0, 0, 0.5);
-            color: rgba(255, 255, 255, 0.5);
-            padding: 5px 12px;
+            top: 12px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            color: rgba(255, 255, 255, 0.4);
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             pointer-events: none;
             z-index: 10;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
         }
 
-        /* --- SMART AUTO-HIDE LOCK BUTTON --- */
-        .player-lock-btn {
+        /* --- TINY & COOL TOP FIXED BUTTONS --- */
+        .top-controls-panel {
             position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 12px;
+            right: 15px;
             z-index: 100;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            width: 36px;
-            height: 36px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .top-btn {
+            background: rgba(15, 15, 15, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.85);
+            width: 28px;  /* বাটন সাইজ আরও ছোট এবং নিখুঁত করা হয়েছে */
+            height: 28px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(5px);
-            opacity: 0; /* শুরুতে এবং কন্ট্রোল বার হাইড থাকলে এটি অদৃশ্য থাকবে */
-            pointer-events: none;
-            transition: opacity 0.2s ease, background 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: all 0.2s ease;
         }
-        .player-lock-btn span { font-size: 20px; }
-        
-        /* কন্ট্রোল বার যখন একটিভ (শো) হবে, তখন বাটন দেখাবে */
-        .shaka-controls-container[show-controls="true"] ~ .player-lock-btn {
+        .top-btn span { font-size: 15px; } /* আইকন সাইজ ছোট করা হয়েছে */
+        .top-btn:hover { background: #E11D48; color: #fff; border-color: #E11D48; transform: scale(1.05); }
+
+        /* নরমাল মোডে লক বাটনটি হাইড থাকবে, ফুলস্ক্রিন করলেই কেবল প্যানেলে আসবে */
+        #lockBtn { display: none; }
+        .is-fullscreen #lockBtn { display: flex; }
+
+        /* শাকা কন্ট্রোল শো হলে টপ প্যানেলও শো হবে */
+        .shaka-controls-container[show-controls="true"] ~ .top-controls-panel {
             opacity: 1;
             pointer-events: auto;
         }
         
-        /* লক করা অবস্থায় বাটনটিকে অলওয়েজ ভিজিবল রাখা (যেন ইউজার আনলক করতে পারে) */
-        .player-locked .player-lock-btn {
+        /* লকড অবস্থায় শুধু টপ প্যানেল অলওয়েজ ভিজিবল থাকবে */
+        .player-locked .top-controls-panel {
             opacity: 1 !important;
             pointer-events: auto !important;
-            background: #E11D48 !important; /* লক অবস্থায় প্রিমিয়াম রেড বাটন */
-            border-color: #E11D48 !important;
         }
+        /* লকড অবস্থায় ফুলস্ক্রিন বাটন হাইড থাকবে, শুধু লক বাটন রেডি থাকবে */
+        .player-locked #customFullscreenBtn { display: none !important; }
+        .player-locked #lockBtn { background: #E11D48 !important; border-color: #E11D48 !important; color: #fff; }
 
-        /* লক করা থাকলে শাকা প্লেয়ারের বাকি সব কন্ট্রোল এবং টাচ জেস্টার পুরোপুরি লকড */
         .player-locked .shaka-controls-container { display: none !important; }
-        .player-locked .gesture-area { pointer-events: none !important; }
 
         /* --- GESTURE OSD INDICATORS --- */
         .gesture-indicator {
             position: absolute;
-            top: 20%;
+            top: 25%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(10, 10, 10, 0.8);
             color: #fff;
-            padding: 10px 18px;
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             z-index: 99;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s ease;
-            border: 1px solid rgba(225, 29, 72, 0.3);
-            backdrop-filter: blur(5px);
+            transition: opacity 0.15s ease;
+            border: 1px solid rgba(225, 29, 72, 0.25);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
         }
 
-        /* --- RED BRANDING THEME OVERRIDES --- */
+        /* --- NEO-RED GLASS THEME OVERRIDES --- */
         .shaka-overflow-menu, .shaka-settings-menu {
-            background: rgba(15, 15, 15, 0.95) !important;
-            backdrop-filter: blur(12px) !important;
-            border: 1px solid rgba(225, 29, 72, 0.3) !important;
-            border-radius: 10px !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+            background: rgba(12, 12, 12, 0.94) !important;
+            backdrop-filter: blur(14px) !important;
+            border: 1px solid rgba(225, 29, 72, 0.25) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.8) !important;
         }
         .shaka-overflow-menu span, .shaka-settings-menu span, .shaka-overflow-menu button, .shaka-settings-menu button {
             color: #ffffff !important;
             font-weight: 600 !important;
         }
         .shaka-overflow-menu button:hover, .shaka-settings-menu button:hover {
-            background: rgba(225, 29, 72, 0.25) !important;
+            background: rgba(225, 29, 72, 0.22) !important;
             color: #E11D48 !important;
         }
         
-        /* Neon Red Progress Bars */
+        /* Neon Red Custom Progress Sliders */
         .shaka-volume-bar-container .shaka-volume-bar-level { background: #E11D48 !important; }
-        .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 8px #E11D48; }
+        .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         
-        /* Loader Box */
+        /* Custom Modern Buffer Loader */
         .custom-loader {
             position: absolute;
             bottom: 85px; 
@@ -167,15 +178,16 @@
             transition: opacity 0.3s ease;
         }
         .loading-text {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(10, 10, 10, 0.85);
             backdrop-filter: blur(6px);
-            padding: 8px 20px;
+            padding: 7px 18px;
             border-radius: 30px;
             color: #E11D48;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 1px;
-            border: 1px solid rgba(225, 29, 72, 0.25);
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(225, 29, 72, 0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
         }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }  
     </style>  
@@ -193,18 +205,24 @@
         </div>
 
         <div id="loadingOverlay" class="custom-loader">
-            <div id="statusText" class="loading-text">LOADING...</div>
+            <div id="statusText" class="loading-text">LOADING MULTISHOWS...</div>
         </div>
 
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
         
-        <button class="player-lock-btn" id="lockBtn">
-            <span class="material-icons" id="lockIcon">lock_open</span>
-        </button>
+        <div class="top-controls-panel">
+            <button class="top-btn" id="lockBtn" title="Lock Screen">
+                <span class="material-icons" id="lockIcon">lock_open</span>
+            </button>
+            <button class="top-btn" id="customFullscreenBtn" title="Toggle Fullscreen">
+                <span class="material-icons" id="fsIcon">fullscreen</span>
+            </button>
+        </div>
     </div>  
   
     <script>  
         let isLocked = false;
+        let isPlayerFullscreen = false; // ফুলস্ক্রিন ট্র্যাক করার ফ্ল্যাগ
         let brightness = 100; 
 
         document.addEventListener('DOMContentLoaded', async () => {  
@@ -217,6 +235,8 @@
             const statusText = document.getElementById('statusText');
             const lockBtn = document.getElementById('lockBtn');
             const lockIcon = document.getElementById('lockIcon');
+            const customFullscreenBtn = document.getElementById('customFullscreenBtn');
+            const fsIcon = document.getElementById('fsIcon');
             
             const player = new shaka.Player(video);  
             const ui = new shaka.ui.Overlay(player, container, video);  
@@ -227,8 +247,8 @@
                     'spacer', 'language', 'captions', 'picture_in_picture',  
                     'quality', 'fullscreen'  
                 ],  
-                volumeBarColors: { base: 'rgba(225, 29, 72, 0.2)', level: 'rgb(225, 29, 72)' },  
-                seekBarColors: { base: 'rgba(255, 255, 255, 0.15)', buffered: 'rgba(255, 255, 255, 0.3)', played: 'rgb(225, 29, 72)' }
+                volumeBarColors: { base: 'rgba(225, 29, 72, 0.15)', level: 'rgb(225, 29, 72)' },  
+                seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
             });  
         
             let drmConfig = {  
@@ -265,9 +285,10 @@
                 loader.style.opacity = '1';
             }  
 
-            // --- LOCK SCREEN LOGIC WITH AUTO-HIDE INTEGRATION ---
+            // --- LOCK SCREEN LOGIC ---
             lockBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (!isPlayerFullscreen) return; // ফুলস্ক্রিন না থাকলে কাজ করবে না
                 isLocked = !isLocked;
                 if(isLocked) {
                     container.classList.add('player-locked');
@@ -275,16 +296,44 @@
                 } else {
                     container.classList.remove('player-locked');
                     lockIcon.innerText = 'lock_open';
-                    
-                    // আনলক করার পর কন্ট্রোল বার যেন তাৎক্ষণিকভাবে সচল হয়
                     const controls = document.querySelector('.shaka-controls-container');
-                    if (controls) {
-                        controls.setAttribute('show-controls', 'true');
-                    }
+                    if (controls) controls.setAttribute('show-controls', 'true');
                 }
             });
 
-            // --- ADVANCED SLIDE GESTURES (SOUND & BRIGHTNESS) ---
+            // --- CUSTOM TOP FULLSCREEN LOGIC ---
+            customFullscreenBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!document.fullscreenElement) {
+                    if (container.requestFullscreen) { container.requestFullscreen(); }
+                    else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); }
+                    fsIcon.innerText = 'fullscreen_exit';
+                } else {
+                    if (document.exitFullscreen) { document.exitFullscreen(); }
+                    fsIcon.innerText = 'fullscreen';
+                }
+            });
+
+            // ফুলস্ক্রিন স্ট্যাটাস চেঞ্জ হ্যান্ডলার (ইনটেলিজেন্ট এক্টিভেশন লজিক)
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    isPlayerFullscreen = true;
+                    container.classList.add('is-fullscreen');
+                    fsIcon.innerText = 'fullscreen_exit';
+                } else {
+                    isPlayerFullscreen = false;
+                    isLocked = false; // ফুলস্ক্রিন থেকে বের হলে লকও খুলে যাবে অটোমেটিক
+                    container.classList.remove('player-locked');
+                    container.classList.remove('is-fullscreen');
+                    lockIcon.innerText = 'lock_open';
+                    fsIcon.innerText = 'fullscreen';
+                    // ব্রাইটনেস ও রিসেট হ্যান্ডেল
+                    brightness = 100;
+                    document.getElementById('brightnessOverlay').style.opacity = 0;
+                }
+            });
+
+            // --- SMART SLIDE GESTURES (Sound & Brightness Only activates in Fullscreen) ---
             const bOverlay = document.getElementById('brightnessOverlay');
             const gOsd = document.getElementById('gestureOsd');
             const gIcon = document.getElementById('gestureIcon');
@@ -302,7 +351,8 @@
             }
 
             container.addEventListener('touchstart', (e) => {
-                if (isLocked) return;
+                // শর্ত: ফুলস্ক্রিন হতে হবে এবং স্ক্রিন লকড থাকা যাবে না
+                if (!isPlayerFullscreen || isLocked) return; 
                 const touch = e.touches[0];
                 startX = touch.clientX;
                 startY = touch.clientY;
@@ -311,13 +361,14 @@
             });
 
             container.addEventListener('touchmove', (e) => {
-                if (isLocked) return;
+                if (!isPlayerFullscreen || isLocked) return; 
                 const touch = e.touches[0];
                 const deltaY = startY - touch.clientY; 
-                const sensitivity = 0.4; 
+                const sensitivity = 0.35; 
 
                 const screenWidth = container.clientWidth;
                 
+                // বাম দিকে স্লাইড = ব্রাইটনেস
                 if (startX < screenWidth / 2) {
                     let newBright = startBright + (deltaY * sensitivity);
                     newBright = Math.max(10, Math.min(100, newBright)); 
@@ -325,8 +376,9 @@
                     bOverlay.style.opacity = (100 - brightness) / 100 * 0.85; 
                     showOSD('brightness_6', Math.round(brightness) + '%');
                 } 
+                // ডান দিকে স্লাইড = সাউন্ড ভলিউম
                 else {
-                    let newVol = startVol + (deltaY / 300); 
+                    let newVol = startVol + (deltaY / 350); 
                     newVol = Math.max(0, Math.min(1, newVol));
                     video.volume = newVol;
                     showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
