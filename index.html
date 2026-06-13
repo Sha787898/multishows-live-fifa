@@ -69,28 +69,46 @@
             backdrop-filter: blur(5px);
         }
 
-        /* --- TINY & SLEEK LOCK BUTTON --- */
+        /* --- SMART AUTO-HIDE LOCK BUTTON --- */
         .player-lock-btn {
             position: absolute;
-            left: 15px;
+            left: 20px;
             top: 50%;
             transform: translateY(-50%);
             z-index: 100;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: rgba(255, 255, 255, 0.7);
-            width: 32px;
-            height: 32px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(3px);
-            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+            opacity: 0; /* শুরুতে এবং কন্ট্রোল বার হাইড থাকলে এটি অদৃশ্য থাকবে */
+            pointer-events: none;
+            transition: opacity 0.2s ease, background 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .player-lock-btn span { font-size: 18px; }
-        .player-lock-btn:hover { background: #E11D48; color: #fff; }
+        .player-lock-btn span { font-size: 20px; }
+        
+        /* কন্ট্রোল বার যখন একটিভ (শো) হবে, তখন বাটন দেখাবে */
+        .shaka-controls-container[show-controls="true"] ~ .player-lock-btn {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        /* লক করা অবস্থায় বাটনটিকে অলওয়েজ ভিজিবল রাখা (যেন ইউজার আনলক করতে পারে) */
+        .player-locked .player-lock-btn {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            background: #E11D48 !important; /* লক অবস্থায় প্রিমিয়াম রেড বাটন */
+            border-color: #E11D48 !important;
+        }
+
+        /* লক করা থাকলে শাকা প্লেয়ারের বাকি সব কন্ট্রোল এবং টাচ জেস্টার পুরোপুরি লকড */
         .player-locked .shaka-controls-container { display: none !important; }
         .player-locked .gesture-area { pointer-events: none !important; }
 
@@ -119,18 +137,18 @@
 
         /* --- RED BRANDING THEME OVERRIDES --- */
         .shaka-overflow-menu, .shaka-settings-menu {
-            background: rgba(15, 15, 15, 0.92) !important;
+            background: rgba(15, 15, 15, 0.95) !important;
             backdrop-filter: blur(12px) !important;
-            border: 1px solid rgba(225, 29, 72, 0.2) !important;
+            border: 1px solid rgba(225, 29, 72, 0.3) !important;
             border-radius: 10px !important;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
-            color: #ffffff !important;
         }
         .shaka-overflow-menu span, .shaka-settings-menu span, .shaka-overflow-menu button, .shaka-settings-menu button {
             color: #ffffff !important;
+            font-weight: 600 !important;
         }
         .shaka-overflow-menu button:hover, .shaka-settings-menu button:hover {
-            background: rgba(225, 29, 72, 0.2) !important;
+            background: rgba(225, 29, 72, 0.25) !important;
             color: #E11D48 !important;
         }
         
@@ -169,10 +187,6 @@
 
         <div class="video-watermark">MultiShows</div>
 
-        <button class="player-lock-btn" id="lockBtn">
-            <span class="material-icons" id="lockIcon">lock_open</span>
-        </button>
-
         <div id="gestureOsd" class="gesture-indicator">
             <span class="material-icons" id="gestureIcon">volume_up</span>
             <span id="gestureValue">50%</span>
@@ -183,11 +197,15 @@
         </div>
 
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
+        
+        <button class="player-lock-btn" id="lockBtn">
+            <span class="material-icons" id="lockIcon">lock_open</span>
+        </button>
     </div>  
   
     <script>  
         let isLocked = false;
-        let brightness = 100; // ডিফল্ট ব্রাইটনেস ১০০%
+        let brightness = 100; 
 
         document.addEventListener('DOMContentLoaded', async () => {  
             shaka.polyfill.installAll();  
@@ -247,18 +265,22 @@
                 loader.style.opacity = '1';
             }  
 
-            // --- LOCK SCREEN LOGIC ---
+            // --- LOCK SCREEN LOGIC WITH AUTO-HIDE INTEGRATION ---
             lockBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 isLocked = !isLocked;
                 if(isLocked) {
                     container.classList.add('player-locked');
                     lockIcon.innerText = 'lock';
-                    lockBtn.style.background = '#E11D48';
                 } else {
                     container.classList.remove('player-locked');
                     lockIcon.innerText = 'lock_open';
-                    lockBtn.style.background = 'rgba(0, 0, 0, 0.4)';
+                    
+                    // আনলক করার পর কন্ট্রোল বার যেন তাৎক্ষণিকভাবে সচল হয়
+                    const controls = document.querySelector('.shaka-controls-container');
+                    if (controls) {
+                        controls.setAttribute('show-controls', 'true');
+                    }
                 }
             });
 
@@ -291,23 +313,20 @@
             container.addEventListener('touchmove', (e) => {
                 if (isLocked) return;
                 const touch = e.touches[0];
-                const deltaY = startY - touch.clientY; // সোয়াইপ আপ করলে পজিটিভ
-                const sensitivity = 0.4; // রেসপন্স স্পিড কন্ট্রোল
+                const deltaY = startY - touch.clientY; 
+                const sensitivity = 0.4; 
 
                 const screenWidth = container.clientWidth;
                 
-                // বাম পাশে সোয়াইপ = ব্রাইটনেস কন্ট্রোল
                 if (startX < screenWidth / 2) {
                     let newBright = startBright + (deltaY * sensitivity);
-                    newBright = Math.max(10, Math.min(100, newBright)); // ১০% থেকে ১০০% লিমিট
+                    newBright = Math.max(10, Math.min(100, newBright)); 
                     brightness = newBright;
-                    // ও Overlay-র অপাসিটি চেঞ্জ করে ব্রাইটনেস এফেক্ট তৈরি
                     bOverlay.style.opacity = (100 - brightness) / 100 * 0.85; 
                     showOSD('brightness_6', Math.round(brightness) + '%');
                 } 
-                // ডান পাশে সোয়াইপ = সাউন্ড কন্ট্রোল
                 else {
-                    let newVol = startVol + (deltaY / 300); // স্মুথ ভলিউম আপ-ডাউন
+                    let newVol = startVol + (deltaY / 300); 
                     newVol = Math.max(0, Math.min(1, newVol));
                     video.volume = newVol;
                     showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
