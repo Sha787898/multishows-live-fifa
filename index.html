@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="no-referrer">
-    <title>MultiShows Premium Live Stream</title>     
+    <title>MultiShows Ultimate Player</title>     
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css">
@@ -19,7 +19,7 @@
     </script>
 
     <style>  
-        * { margin: 0; padding: 0; box-sizing: border-box; }  
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }  
         html, body {  
             background: #000;  
             height: 100%;  
@@ -31,6 +31,7 @@
             position: relative;  
             width: 100%;  
             height: 100vh;  
+            touch-action: none;
         }  
         video {  
             width: 100%;  
@@ -38,71 +39,106 @@
             background: #000;  
             object-fit: contain;  
         }  
+
+        /* --- BRIGHTNESS FILTER OVERLAY --- */
+        #brightnessOverlay {
+            position: absolute;
+            inset: 0;
+            background: black;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
         
         /* --- PREMIUM WATERMARK --- */
         .video-watermark {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            color: rgba(255, 255, 255, 0.65);
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 13px;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            color: rgba(255, 255, 255, 0.5);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
             font-weight: 800;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             pointer-events: none;
             z-index: 10;
-            user-select: none;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        /* --- ADVANCED LOCK SCREEN BUTTON --- */
+        /* --- TINY & SLEEK LOCK BUTTON --- */
         .player-lock-btn {
             position: absolute;
-            left: 20px;
+            left: 15px;
             top: 50%;
             transform: translateY(-50%);
             z-index: 100;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(3px);
             transition: all 0.2s;
         }
-        .player-lock-btn:hover { background: #0088ff; border-color: #0088ff; }
+        .player-lock-btn span { font-size: 18px; }
+        .player-lock-btn:hover { background: #E11D48; color: #fff; }
         .player-locked .shaka-controls-container { display: none !important; }
+        .player-locked .gesture-area { pointer-events: none !important; }
 
-        /* --- MULTISHOWS BRANDING THEME OVERRIDES --- */
+        /* --- GESTURE OSD INDICATORS --- */
+        .gesture-indicator {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 99;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            border: 1px solid rgba(225, 29, 72, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        /* --- RED BRANDING THEME OVERRIDES --- */
         .shaka-overflow-menu, .shaka-settings-menu {
-            background: rgba(10, 10, 10, 0.85) !important;
-            backdrop-filter: blur(10px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 12px !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7) !important;
+            background: rgba(15, 15, 15, 0.92) !important;
+            backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(225, 29, 72, 0.2) !important;
+            border-radius: 10px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+            color: #ffffff !important;
+        }
+        .shaka-overflow-menu span, .shaka-settings-menu span, .shaka-overflow-menu button, .shaka-settings-menu button {
+            color: #ffffff !important;
         }
         .shaka-overflow-menu button:hover, .shaka-settings-menu button:hover {
-            background: rgba(0, 136, 255, 0.2) !important;
-            color: #0088ff !important;
-        }
-        .shaka-bottom-controls {
-            padding: 0 15px 10px 15px !important;
+            background: rgba(225, 29, 72, 0.2) !important;
+            color: #E11D48 !important;
         }
         
-        /* Neon Blue Progress Bars */
-        .shaka-volume-bar-container .shaka-volume-bar-level { background: #0088ff !important; }
-        .shaka-seek-bar-container .shaka-seek-bar-played { background: #0088ff !important; box-shadow: 0 0 8px #0088ff; }
+        /* Neon Red Progress Bars */
+        .shaka-volume-bar-container .shaka-volume-bar-level { background: #E11D48 !important; }
+        .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 8px #E11D48; }
         
-        /* --- STATUS MESSAGES --- */
+        /* Loader Box */
         .custom-loader {
             position: absolute;
             bottom: 85px; 
@@ -115,30 +151,35 @@
         .loading-text {
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(6px);
-            padding: 10px 24px;
+            padding: 8px 20px;
             border-radius: 30px;
-            color: #00ff88;
-            font-size: 13px;
+            color: #E11D48;
+            font-size: 12px;
             font-weight: 700;
             letter-spacing: 1px;
-            border: 1px solid rgba(0, 255, 136, 0.25);
+            border: 1px solid rgba(225, 29, 72, 0.25);
         }
-
-        /* Hide Default Loading Spinner */
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }  
     </style>  
 </head>  
 <body>  
 
     <div class="shaka-video-container" data-shaka-player-container id="playerContainer">  
+        <div id="brightnessOverlay"></div>
+
         <div class="video-watermark">MultiShows</div>
 
         <button class="player-lock-btn" id="lockBtn">
             <span class="material-icons" id="lockIcon">lock_open</span>
         </button>
 
+        <div id="gestureOsd" class="gesture-indicator">
+            <span class="material-icons" id="gestureIcon">volume_up</span>
+            <span id="gestureValue">50%</span>
+        </div>
+
         <div id="loadingOverlay" class="custom-loader">
-            <div id="statusText" class="loading-text">LOADING MULTISHOWS PLAYER...</div>
+            <div id="statusText" class="loading-text">LOADING...</div>
         </div>
 
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
@@ -146,6 +187,7 @@
   
     <script>  
         let isLocked = false;
+        let brightness = 100; // ডিফল্ট ব্রাইটনেস ১০০%
 
         document.addEventListener('DOMContentLoaded', async () => {  
             shaka.polyfill.installAll();  
@@ -167,11 +209,10 @@
                     'spacer', 'language', 'captions', 'picture_in_picture',  
                     'quality', 'fullscreen'  
                 ],  
-                volumeBarColors: { base: 'rgba(0, 136, 255, 0.25)', level: 'rgb(0, 136, 255)' },  
-                seekBarColors: { base: 'rgba(255, 255, 255, 0.2)', buffered: 'rgba(255, 255, 255, 0.4)', played: 'rgb(0, 136, 255)' }
+                volumeBarColors: { base: 'rgba(225, 29, 72, 0.2)', level: 'rgb(225, 29, 72)' },  
+                seekBarColors: { base: 'rgba(255, 255, 255, 0.15)', buffered: 'rgba(255, 255, 255, 0.3)', played: 'rgb(225, 29, 72)' }
             });  
         
-            // DRM Configuration
             let drmConfig = {  
                 clearKeys: {  
                     "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"  
@@ -191,9 +232,8 @@
                 }  
             });  
         
-            // Custom Loader Handle
             video.addEventListener('playing', () => { loader.style.opacity = '0'; });
-            video.addEventListener('waiting', () => { statusText.innerText = "BUFFERING MATCH..."; loader.style.opacity = '1'; });
+            video.addEventListener('waiting', () => { statusText.innerText = "BUFFERING..."; loader.style.opacity = '1'; });
 
             player.addEventListener('error', (event) => {  
                 statusText.innerHTML = "<span style='color:#E11D48;'>STREAM OFFLINE / EXPIRED</span>";
@@ -207,18 +247,70 @@
                 loader.style.opacity = '1';
             }  
 
-            // --- LOCK SCREEN JAVASCRIPT ---
+            // --- LOCK SCREEN LOGIC ---
             lockBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 isLocked = !isLocked;
                 if(isLocked) {
                     container.classList.add('player-locked');
                     lockIcon.innerText = 'lock';
-                    lockBtn.style.background = '#E11D48'; // লকড অবস্থায় লাল বাটন
+                    lockBtn.style.background = '#E11D48';
                 } else {
                     container.classList.remove('player-locked');
                     lockIcon.innerText = 'lock_open';
-                    lockBtn.style.background = 'rgba(0, 0, 0, 0.6)';
+                    lockBtn.style.background = 'rgba(0, 0, 0, 0.4)';
+                }
+            });
+
+            // --- ADVANCED SLIDE GESTURES (SOUND & BRIGHTNESS) ---
+            const bOverlay = document.getElementById('brightnessOverlay');
+            const gOsd = document.getElementById('gestureOsd');
+            const gIcon = document.getElementById('gestureIcon');
+            const gValue = document.getElementById('gestureValue');
+
+            let startX, startY, startVol, startBright;
+            let osdTimeout;
+
+            function showOSD(icon, value) {
+                gIcon.innerText = icon;
+                gValue.innerText = value;
+                gOsd.style.opacity = '1';
+                clearTimeout(osdTimeout);
+                osdTimeout = setTimeout(() => { gOsd.style.opacity = '0'; }, 800);
+            }
+
+            container.addEventListener('touchstart', (e) => {
+                if (isLocked) return;
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                startVol = video.volume;
+                startBright = brightness;
+            });
+
+            container.addEventListener('touchmove', (e) => {
+                if (isLocked) return;
+                const touch = e.touches[0];
+                const deltaY = startY - touch.clientY; // সোয়াইপ আপ করলে পজিটিভ
+                const sensitivity = 0.4; // রেসপন্স স্পিড কন্ট্রোল
+
+                const screenWidth = container.clientWidth;
+                
+                // বাম পাশে সোয়াইপ = ব্রাইটনেস কন্ট্রোল
+                if (startX < screenWidth / 2) {
+                    let newBright = startBright + (deltaY * sensitivity);
+                    newBright = Math.max(10, Math.min(100, newBright)); // ১০% থেকে ১০০% লিমিট
+                    brightness = newBright;
+                    // ও Overlay-র অপাসিটি চেঞ্জ করে ব্রাইটনেস এফেক্ট তৈরি
+                    bOverlay.style.opacity = (100 - brightness) / 100 * 0.85; 
+                    showOSD('brightness_6', Math.round(brightness) + '%');
+                } 
+                // ডান পাশে সোয়াইপ = সাউন্ড কন্ট্রোল
+                else {
+                    let newVol = startVol + (deltaY / 300); // স্মুথ ভলিউম আপ-ডাউন
+                    newVol = Math.max(0, Math.min(1, newVol));
+                    video.volume = newVol;
+                    showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
                 }
             });
         });  
