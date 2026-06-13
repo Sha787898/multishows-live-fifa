@@ -54,7 +54,7 @@
         .video-watermark {
             position: absolute;
             top: 12px;
-            right: 15px; /* লোগোটি এবার ডানপাশে নিয়ে আসা হয়েছে কারণ বামে ফুলস্ক্রিন বাটন আছে */
+            right: 15px;
             background: rgba(0, 0, 0, 0.4);
             padding: 4px 12px;
             border-radius: 20px;
@@ -73,23 +73,23 @@
             display: inline-block;
         }
         .video-watermark:hover {
-            background: #0088ff; /* টেলিগ্রাম ব্লু কালার */
+            background: #0088ff;
             border-color: #0088ff;
         }
         .video-watermark:hover span {
             color: #fff;
         }
 
-        /* --- FIXED TOP PANEL (FULLSCREEN ON TOP-LEFT) --- */
+        /* --- FIXED TOP PANEL (TOP-LEFT) --- */
         .top-left-panel {
             position: absolute;
             top: 12px;
-            left: 15px; /* রিকোয়েস্ট অনুযায়ী একদম বাম পাশের টপে */
+            left: 15px;
             z-index: 100;
             display: flex;
             gap: 8px;
             align-items: center;
-            opacity: 0; /* শুরুতে এবং আইডিয়াল মোডে হাইড থাকবে */
+            opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
         }
@@ -98,41 +98,85 @@
             background: rgba(15, 15, 15, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: rgba(255, 255, 255, 0.85);
-            width: 30px;  
             height: 30px;
-            border-radius: 50%;
+            padding: 0 10px;
+            border-radius: 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 4px;
             backdrop-filter: blur(4px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.4);
             transition: all 0.2s ease;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .top-btn.btn-circle {
+            width: 30px;
+            padding: 0;
+            border-radius: 50%;
         }
         .top-btn span { font-size: 16px; } 
         .top-btn:hover { background: #E11D48; color: #fff; border-color: #E11D48; }
 
-        /* লক বাটনটি শুধু ফুলস্ক্রিন করলেই প্যানেলে ভিজিবল হবে */
+        /* লক বাটন কন্ট্রোল */
         #lockBtn { display: none; }
         .is-fullscreen #lockBtn { display: flex; }
 
-        /* শাকা প্লেয়ারের কন্ট্রোল প্যানেল মাউস বা টাচে ভেসে উঠলে উপরের বাটনগুলোও শো হবে */
         .shaka-controls-container[show-controls="true"] ~ .top-left-panel {
             opacity: 1;
             pointer-events: auto;
         }
         
-        /* স্ক্রিন লকড অবস্থায় টপ প্যানেল সবসময় ভিজিবল থাকবে (আনলক অপশন বজায় রাখার জন্য) */
         .player-locked .top-left-panel {
             opacity: 1 !important;
             pointer-events: auto !important;
         }
-        /* লকড অবস্থায় ফুলস্ক্রিন বাটন হাইড হয়ে যাবে, শুধু লাল লক বাটনটি থাকবে */
-        .player-locked #customFullscreenBtn { display: none !important; }
+        .player-locked #customFullscreenBtn, .player-locked #serverMenuBtn { display: none !important; }
         .player-locked #lockBtn { background: #E11D48 !important; border-color: #E11D48 !important; color: #fff; }
-
-        /* লকড অবস্থায় নিচের ডিফল্ট সব কন্ট্রোল সম্পূর্ণরূপে ব্লক */
         .player-locked .shaka-controls-container { display: none !important; }
+
+        /* --- SERVER MODAL/POPUP POPUP --- */
+        .server-popup {
+            position: absolute;
+            top: 50px;
+            left: 15px;
+            background: rgba(12, 12, 12, 0.95);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(225, 29, 72, 0.25);
+            border-radius: 12px;
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 140px;
+            z-index: 101;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.8);
+        }
+        .server-popup button {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+        .server-popup button:hover {
+            background: rgba(225, 29, 72, 0.2);
+            color: #E11D48;
+        }
+        .server-popup button.active {
+            background: #E11D48;
+            color: #fff;
+        }
 
         /* --- GESTURE OSD INDICATORS --- */
         .gesture-indicator {
@@ -222,19 +266,43 @@
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
         
         <div class="top-left-panel">
-            <button class="top-btn" id="customFullscreenBtn" title="Toggle Fullscreen">
+            <button class="top-btn btn-circle" id="customFullscreenBtn" title="Toggle Fullscreen">
                 <span class="material-icons" id="fsIcon">fullscreen</span>
             </button>
-            <button class="top-btn" id="lockBtn" title="Lock Screen">
+            <button class="top-btn" id="serverMenuBtn" title="Change Server">
+                <span class="material-icons">dns</span> <span id="currentServerLabel">SERVER 1</span>
+            </button>
+            <button class="top-btn btn-circle" id="lockBtn" title="Lock Screen">
                 <span class="material-icons" id="lockIcon">lock_open</span>
             </button>
         </div>
+
+        <div class="server-popup" id="serverPopup">
+            </div>
     </div>  
   
     <script>  
         let isLocked = false;
         let isPlayerFullscreen = false; 
         let brightness = 100; 
+
+        // --- MULTI-SERVER CONFIGURATION ---
+        const serverList = [
+            {
+                name: "SERVER 1",
+                url: "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd",
+                clearKeys: { "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050" }
+            },
+            {
+                name: "SERVER 2",
+                url: "https://a121aivottepl-a.akamaihd.net/gru-nitro/live/clients/dash/enc/jo3rmhhp2r/out/v1/50656942ce4e40a1be824c9d83578fe9/cenc.mpd",
+                clearKeys: { "34475edab991ad5e92548aebd710410a": "501b209cccd323ac00bf5ac15b406cb4" }
+            }
+        ];
+
+        let currentServerIndex = 0;
+        let fallbackTimer = null;
+        const LOAD_TIMEOUT = 15000; // ১৫ সেকেন্ড টাইমার
 
         document.addEventListener('DOMContentLoaded', async () => {  
             shaka.polyfill.installAll();  
@@ -250,6 +318,10 @@
             const fsIcon = document.getElementById('fsIcon');
             const telegramLink = document.getElementById('telegramLink');
             
+            const serverMenuBtn = document.getElementById('serverMenuBtn');
+            const serverPopup = document.getElementById('serverPopup');
+            const currentServerLabel = document.getElementById('currentServerLabel');
+            
             const player = new shaka.Player(video);  
             const ui = new shaka.ui.Overlay(player, container, video);  
         
@@ -262,40 +334,109 @@
                 volumeBarColors: { base: 'rgba(225, 29, 72, 0.15)', level: 'rgb(225, 29, 72)' },  
                 seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
             });  
-        
-            let drmConfig = {  
-                clearKeys: {  
-                    "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050"  
-                }
-            };  
-        
-            let streamUrl = "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd";  
-        
-            player.configure({  
-                drm: drmConfig,  
-                streaming: {  
-                    lowLatencyMode: true,  
-                    bufferingGoal: 12,  
-                    rebufferingGoal: 2.5,  
-                    bufferBehind: 10,
-                    crossOrigin: 'anonymous'
+
+            // --- SERVER INITIALIZATION & AUTO RECOVER ---
+            async function loadServer(index) {
+                if (index >= serverList.length) index = 0; 
+                currentServerIndex = index;
+                
+                const currentServer = serverList[currentServerIndex];
+                currentServerLabel.innerText = currentServer.name;
+                
+                player.configure({  
+                    drm: { clearKeys: currentServer.clearKeys },  
+                    streaming: {  
+                        lowLatencyMode: true,  
+                        bufferingGoal: 12,  
+                        rebufferingGoal: 2.5,  
+                        bufferBehind: 10,
+                        crossOrigin: 'anonymous'
+                    }  
+                });  
+
+                statusText.innerText = `CONNECTING ${currentServer.name}...`;
+                loader.style.opacity = '1';
+                
+                startFallbackTimer(); 
+
+                try {  
+                    await player.load(currentServer.url);  
+                } catch (error) {
+                    handleStreamFailure();
                 }  
-            });  
+                renderServerPopup();
+            }
+
+            // ১৫ সেকেন্ডের অটো-সুইচ টাইমার কন্ট্রোল
+            function startFallbackTimer() {
+                clearTimeout(fallbackTimer);
+                fallbackTimer = setTimeout(() => {
+                    console.log("Stream load timeout! Switching server...");
+                    handleStreamFailure();
+                }, LOAD_TIMEOUT);
+            }
+
+            function stopFallbackTimer() {
+                clearTimeout(fallbackTimer);
+            }
+
+            function handleStreamFailure() {
+                stopFallbackTimer();
+                let nextIndex = (currentServerIndex + 1) % serverList.length;
+                statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING TO SERVER ${nextIndex + 1}...</span>`;
+                loader.style.opacity = '1';
+                
+                setTimeout(() => {
+                    loadServer(nextIndex);
+                }, 2000); 
+            }
         
-            video.addEventListener('playing', () => { loader.style.opacity = '0'; });
-            video.addEventListener('waiting', () => { statusText.innerText = "BUFFERING..."; loader.style.opacity = '1'; });
+            video.addEventListener('playing', () => { 
+                loader.style.opacity = '0'; 
+                stopFallbackTimer(); 
+            });
+            
+            video.addEventListener('waiting', () => { 
+                statusText.innerText = "BUFFERING..."; 
+                loader.style.opacity = '1'; 
+                startFallbackTimer(); 
+            });
 
             player.addEventListener('error', (event) => {  
-                statusText.innerHTML = "<span style='color:#E11D48;'>STREAM OFFLINE / EXPIRED</span>";
-                loader.style.opacity = '1';
+                handleStreamFailure();
             });  
-        
-            try {  
-                await player.load(streamUrl);  
-            } catch (error) {
-                statusText.innerHTML = "<span style='color:#E11D48;'>FAILED TO LOAD STREAM</span>";
-                loader.style.opacity = '1';
-            }  
+
+            // পপআপের ভেতরে সার্ভার বাটন জেনারেট করা
+            function renderServerPopup() {
+                serverPopup.innerHTML = '';
+                serverList.forEach((srv, idx) => {
+                    const btn = document.createElement('button');
+                    btn.innerText = srv.name;
+                    if(idx === currentServerIndex) btn.classList.add('active');
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        serverPopup.style.display = 'none';
+                        if(idx !== currentServerIndex) {
+                            loadServer(idx);
+                        }
+                    });
+                    serverPopup.appendChild(btn);
+                });
+            }
+
+            // প্রথম সার্ভার লোড করা
+            await loadServer(0);
+
+            // --- POPUP MENU INTERACTION ---
+            serverMenuBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex';
+            });
+
+            document.addEventListener('click', () => {
+                serverPopup.style.display = 'none';
+            });
 
             // --- LOCK SCREEN LOGIC ---
             lockBtn.addEventListener('click', (e) => {
@@ -306,7 +447,8 @@
                 if(isLocked) {
                     container.classList.add('player-locked');
                     lockIcon.innerText = 'lock';
-                    telegramLink.style.pointerEvents = 'none'; // লক থাকা অবস্থায় টেলিগ্রাম লিংক অফ থাকবে
+                    telegramLink.style.pointerEvents = 'none';
+                    serverPopup.style.display = 'none';
                 } else {
                     container.classList.remove('player-locked');
                     lockIcon.innerText = 'lock_open';
@@ -330,9 +472,7 @@
                 }
             });
 
-            // ব্রাউজার ফুলস্ক্রিন চেঞ্জ ডিটেকশন (১০০% কাজ করবে এবার)
             function checkFullscreenState() {
-                // কিছু ব্রাউজার বা আইফ্রেমের জন্য ফুলস্ক্রিন এলিমেন্ট ছাড়াও উইন্ডো সাইজ ট্র্যাক করা হচ্ছে 
                 if (document.fullscreenElement || window.innerHeight == screen.height) {
                     isPlayerFullscreen = true;
                     container.classList.add('is-fullscreen');
@@ -347,6 +487,7 @@
                     telegramLink.style.pointerEvents = 'auto';
                     brightness = 100;
                     document.getElementById('brightnessOverlay').style.opacity = 0;
+                    serverPopup.style.display = 'none';
                 }
             }
 
