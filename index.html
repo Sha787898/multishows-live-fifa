@@ -66,7 +66,7 @@
         }
         .video-watermark span {
             color: rgba(255, 255, 255, 0.7);
-            font-size: 9.5px; /* সাইজ ছোট করা হয়েছে */
+            font-size: 9.5px; 
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -95,7 +95,7 @@
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.08);
             color: rgba(255, 255, 255, 0.7);
-            height: 24px; /* ওয়াটারমার্কের সাথে সামঞ্জস্যপূর্ণ হাইট */
+            height: 24px; 
             padding: 0 10px;
             border-radius: 6px; 
             cursor: pointer;
@@ -105,7 +105,7 @@
             gap: 4px;
             backdrop-filter: blur(4px);
             transition: all 0.2s ease;
-            font-size: 9.5px; /* ওয়াটারমার্কের সমান ফ্রন্ট সাইজ */
+            font-size: 9.5px; 
             font-weight: 700;
             letter-spacing: 1px;
         }
@@ -273,7 +273,7 @@
         let isPlayerFullscreen = false; 
         let brightness = 100; 
 
-        // --- MULTI-SERVER CONFIGURATION ---
+        // --- MULTI-SERVER CONFIGURATION (FIXED COMMAS) ---
         const serverList = [
             {
                 name: "SERVER 1",
@@ -284,17 +284,17 @@
                 name: "SERVER 2",
                 url: "https://a121aivottepl-a.akamaihd.net/gru-nitro/live/clients/dash/enc/jo3rmhhp2r/out/v1/50656942ce4e40a1be824c9d83578fe9/cenc.mpd",
                 clearKeys: { "34475edab991ad5e92548aebd710410a": "501b209cccd323ac00bf5ac15b406cb4" }
-            }
+            },
             {
-        name: "SERVER 3",
-        url: "https://a151aivottlinear-a.akamaihd.net/OTTB/sin-nitro/live/dash/enc/m7duvnk2bu/out/v1/d1ad69118b5647309b1eb7213affdb3d/cenc.mpd",
-        clearKeys: { "4bbcff3289d457b4dd5dbdd21221de9a": "c4906b9a9f8dda3c0725bddb8c497733" }
-    }
-         {
-        name: "SERVER 4",
-        url: "https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/8u9cregwlt/out/v1/687f6b2a559943549be271504a948ffd/cenc.mpd",
-        clearKeys: { "1710ac2bbfcd3032d0f6533850968f47": "d2548dacc8efcd1cd0af0373060c82dc" }
-    }
+                name: "SERVER 3",
+                url: "https://a151aivottlinear-a.akamaihd.net/OTTB/sin-nitro/live/dash/enc/m7duvnk2bu/out/v1/d1ad69118b5647309b1eb7213affdb3d/cenc.mpd",
+                clearKeys: { "4bbcff3289d457b4dd5dbdd21221de9a": "c4906b9a9f8dda3c0725bddb8c497733" }
+            },
+            {
+                name: "SERVER 4",
+                url: "https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/8u9cregwlt/out/v1/687f6b2a559943549be271504a948ffd/cenc.mpd",
+                clearKeys: { "1710ac2bbfcd3032d0f6533850968f47": "d2548dacc8efcd1cd0af0373060c82dc" }
+            }
         ];
 
         let currentServerIndex = 0;
