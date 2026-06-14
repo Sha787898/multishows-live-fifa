@@ -323,12 +323,25 @@
         .shaka-volume-bar-container { display: none !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         
-        /* 🛠️ TARGETED CSS FIX: মেইন কন্ট্রোল অক্ষত থাকবে, শুধু নিচের অতিরিক্ত শ্যাডো বারটি গায়েব হবে */
-        .shaka-controls-container .shaka-bottom-controls {
+        /* 🛡️ CRITICAL FIX: মেইন কন্ট্রোল প্যানেল এর ভেতরের বাটনগুলোকে জোরপূর্বক ভিজিবল করা হলো */
+        .shaka-controls-container, 
+        .shaka-bottom-controls, 
+        .shaka-bottom-controls * {
             display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
+        
+        /* শুধুমাত্র শাকা প্লেয়ারের এক্সট্রা ডুপ্লিকেট নিচের শ্যাডো বারটিকে হাইড করার জন্য ট্রিক */
         .shaka-bottom-controls + .shaka-bottom-controls {
             display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        
+        /* স্পেসার এবং পজিশনিং ঠিক রাখার জন্য ডিসপ্লে ইনহেরিট করা হলো */
+        .shaka-spacer {
+            flex-grow: 1 !important;
         }
         
         .ui-hidden { 
