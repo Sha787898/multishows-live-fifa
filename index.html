@@ -323,9 +323,11 @@
         .shaka-volume-bar-container { display: none !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         
-        /* 🛠️ 100% PERFECT FIX: শুধু নিচের অবিরত তৈরি হওয়া এক্সট্রা ডাবল বারটি হাইড করা হলো */
-        .shaka-controls-container > .shaka-bottom-controls ~ .shaka-bottom-controls,
-        .shaka-controls-container :not(.shaka-bottom-controls) + .shaka-bottom-controls {
+        /* 🛠️ TARGETED CSS FIX: মেইন কন্ট্রোল অক্ষত থাকবে, শুধু নিচের অতিরিক্ত শ্যাডো বারটি গায়েব হবে */
+        .shaka-controls-container .shaka-bottom-controls {
+            display: flex !important;
+        }
+        .shaka-bottom-controls + .shaka-bottom-controls {
             display: none !important;
         }
         
