@@ -50,7 +50,7 @@
             z-index: 1;
         }
         
-        /* --- SMALLER TELEGRAM WATERMARK (RIGHT SIDE) --- */
+        /* --- SMALLER TELEGRAM WATERMARK --- */
         .video-watermark {
             position: absolute;
             top: 12px;
@@ -80,7 +80,7 @@
             color: #fff;
         }
 
-        /* --- FIXED SERVER SWITCH PANEL --- */
+        /* --- SERVER SWITCH PANEL --- */
         .top-left-panel {
             position: absolute;
             top: 12px; 
@@ -117,7 +117,6 @@
         .top-btn span.material-icons { font-size: 12px; } 
         .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; }
 
-        /* লক বাটন কন্ট্রোল */
         #lockBtn { display: none; }
         .is-fullscreen #lockBtn { display: flex; }
 
@@ -126,7 +125,7 @@
         .player-locked #lockBtn span { font-size: 15px; }
         .player-locked .shaka-controls-container { display: none !important; }
 
-        /* --- SERVER DROP-DOWN MENU (CLEAN PREMIUM THEME) --- */
+        /* --- SERVER DROP-DOWN MENU --- */
         .server-popup {
             position: absolute;
             top: 42px; 
@@ -230,7 +229,7 @@
             justify-content: center;
             z-index: 10;
             pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: opacity 0.2s ease;
         }
         .cool-play-btn {
             width: 60px;
@@ -250,8 +249,7 @@
         .cool-play-btn span {
             color: #fff;
             font-size: 30px;
-            transition: transform 0.2s;
-            margin-left: 2px; /* প্লে অ্যারো আইকনটি একদম সেন্টারে রাখার জন্য */
+            margin-left: 2px;
         }
         .cool-play-btn:hover {
             transform: scale(1.08);
@@ -282,7 +280,31 @@
             backdrop-filter: blur(6px);
         }
 
-        /* --- PREMIUM NEO-RED GLASS THEME --- */
+        /* --- FIX: CONNECTING TEXT OVERLAPPING --- */
+        .custom-loader {
+            position: absolute;
+            top: calc(50% + 55px); /* Text position in perfect gap just below the play button */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .loading-text {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(6px);
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: #E11D48;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(225, 29, 72, 0.2);
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* PREMIUM NEO-RED GLASS THEME */
         .shaka-overflow-menu, .shaka-settings-menu {
             background: rgba(12, 12, 12, 0.94) !important;
             backdrop-filter: blur(14px) !important;
@@ -302,36 +324,8 @@
         .shaka-volume-bar-container { display: none !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         
-        /* UI হাইড স্টেট ক্লাসের জন্য ট্রানজিশন */
-        .ui-hidden {
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-        .shaka-controls-container {
-            transition: opacity 0.2s ease !important;
-        }
-
-        /* Modern Loader */
-        .custom-loader {
-            position: absolute;
-            bottom: 85px; 
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .loading-text {
-            background: rgba(10, 10, 10, 0.85);
-            backdrop-filter: blur(6px);
-            padding: 7px 18px;
-            border-radius: 30px;
-            color: #E11D48;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            border: 1px solid rgba(225, 29, 72, 0.2);
-        }
+        .ui-hidden { opacity: 0 !important; pointer-events: none !important; }
+        .shaka-controls-container { transition: opacity 0.2s ease !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }  
     </style>  
 </head>  
@@ -363,7 +357,7 @@
         
         <div class="top-left-panel" id="topLeftPanel">
             <button class="top-btn" id="serverMenuBtn" title="Change Server">
-                <span class="material-icons">dns</span> <span id="currentServerLabel">SERVER 1</span>
+                <span class="material-icons">dns</span> <span id="currentServerLabel">LOADING...</span>
             </button>
             <button class="top-btn btn-circle" id="customFullscreenBtn" title="Toggle Fullscreen">
                 <span class="material-icons" id="fsIcon">fullscreen</span>
@@ -388,65 +382,33 @@
         let isPlayerFullscreen = false; 
         let brightness = 100; 
         let autoSwitchEnabled = true; 
-        let controlsVisible = true; // কন্ট্রোল প্যানেল ভিজিবিলিটি ট্র্যাক করার জন্য
-
-        // --- MULTI-SERVER CONFIGURATION ---
-        const serverList = [
-            {
-                name: "SERVER 1",
-                url: "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd",
-                clearKeys: { "549ab7cd35a64bb6bb479ecead04d69d": "829799ed534d11fcadeb4b192467e050" }
-            },
-            {
-                name: "SERVER 2",
-                url: "https://otte-tim.live.pv-cdn.net/pdx-nitro/live/clients/dash/enc/ajfoeddkbz/out/v1/b78800b9b2304879b15843f455836829/cenc.mpd",
-                clearKeys: { "f6564ec2aee819046328a0e153be574d": "ff46a8a1031eb27ef22576a077c98ab7" }
-            },
-            {
-                name: "SERVER 3",
-                url: "https://live.vrtcdn.be/groupd/live/0761024f-37fe-4254-bc37-e95d7c62b2d1/live.isml/.mpd",
-                clearKeys: { "893bc63340876605f52886a42e0ccce5": "d6c46d2d691056fbd091bf1f01b21a91" }
-            },
-            {
-                name: "SERVER 4",
-                url: "https://a121aivottepl-a.akamaihd.net/gru-nitro/live/clients/dash/enc/jo3rmhhp2r/out/v1/50656942ce4e40a1be824c9d83578fe9/cenc.mpd",
-                clearKeys: { "34475edab991ad5e92548aebd710410a": "501b209cccd323ac00bf5ac15b406cb4" }
-            },
-            {
-                name: "SERVER 5",
-                url: "https://live-oneapp-prd-news.akamaized.net/Content/CMAF_OL2-CTR-4s-v2/Live/channel(kvea)/master.mpd",
-                clearKeys: { "ce7ab3022e753307997f58afe001bac4": "72d631a66e635c60829a0fe7705516c1" }
-            },
-            {
-                name: "SERVER 6",
-                url: "https://আপনার_লিংক_এখানে",
-                clearKeys: { "key_id": "key_value" }
-            },
-            {
-                name: "SERVER 7",
-                url: "https://আপনার_লিংক_এখানে",
-                clearKeys: { "key_id": "key_value" }
-            },
-            {
-                name: "SERVER 8",
-                url: "https://আপনার_লিংক_এখানে",
-                clearKeys: { "key_id": "key_value" }
-            },
-            {
-                name: "SERVER 9",
-                url: "https://আপনার_লিংক_এখানে",
-                clearKeys: { "key_id": "key_value" }
-            },
-            {
-                name: "SERVER 10",
-                url: "https://আপনার_লিংক_এখানে",
-                clearKeys: { "key_id": "key_value" }
-            }
-        ];
-
+        let controlsVisible = true; 
+        
+        let serverList = []; 
         let currentServerIndex = 0;
         let fallbackTimer = null;
         const LOAD_TIMEOUT = 15000; 
+
+        // ক্লাউডফ্লেয়ার ওয়ার্কারের সাথে সিকিউরড হ্যান্ডশেক এপিআই
+        async function fetchSecureServers() {
+            try {
+                const response = await fetch('https://solitary-meadow-ecemultishows-api.shabidalhasan.workers.dev/', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer MultiShowsSecureToken2026' 
+                    }
+                });
+
+                if (!response.ok) throw new Error('Security Handshake Failed');
+                serverList = await response.json(); 
+                return true;
+            } catch (error) {
+                console.error("Security Fetch Error:", error);
+                document.getElementById('statusText').innerText = "SECURITY ERROR: KEY PROTECTED.";
+                return false;
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {  
             shaka.polyfill.installAll();  
@@ -473,6 +435,9 @@
             const coolPlayBtn = document.getElementById('coolPlayBtn');
             const coolPlayIcon = document.getElementById('coolPlayIcon');
             
+            const secureLoadSuccess = await fetchSecureServers();
+            if (!secureLoadSuccess || serverList.length === 0) return;
+
             const player = new shaka.Player(video);  
             const ui = new shaka.ui.Overlay(player, container, video);  
         
@@ -486,7 +451,6 @@
 
             const shakaControls = document.querySelector('.shaka-controls-container');
 
-            // --- AUTO SWITCH TOGGLE ---
             autoSwitchToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
                 autoSwitchEnabled = !autoSwitchEnabled;
@@ -500,7 +464,6 @@
                 }
             });
 
-            // --- COOL PLAY/PAUSE LOGIC ---
             function updateCoolPlayBtn() {
                 if (video.paused) {
                     coolPlayIcon.innerText = "play_arrow";
@@ -519,11 +482,8 @@
                 }
             });
 
-            // --- TAP TO TOGGLE ALL CONTROLS PANEL ---
             container.addEventListener('click', (e) => {
                 if (isLocked) return;
-                
-                // সার্ভার মেনু ওপেন থাকলে সেটা বন্ধ করবে, অন্য প্যানেল হাইড করবে না
                 if (serverPopup.style.display === 'flex') {
                     serverPopup.style.display = 'none';
                     return;
@@ -544,7 +504,6 @@
                 }
             });
 
-            // কন্ট্রোল এলিমেন্টগুলোর ওপর ক্লিক করলে যাতে মেনু গায়েব না হয়ে যায়
             shakaControls.addEventListener('click', (e) => e.stopPropagation());
             topLeftPanel.addEventListener('click', (e) => e.stopPropagation());
             serverPopup.addEventListener('click', (e) => e.stopPropagation());
@@ -731,7 +690,6 @@
             }
 
             container.addEventListener('touchstart', (e) => {
-                // মেইন ফিক্স: লক থাকলে বা সার্ভার মেনু ওপেন থাকলে ব্রাইটনেস/ভলিউম স্লাইড কাজ করবে না
                 if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex') return; 
                 const touch = e.touches[0];
                 startX = touch.clientX;
