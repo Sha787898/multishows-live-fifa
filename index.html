@@ -60,7 +60,7 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(4px);
             text-decoration: none !important;
-            transition: all 0.2s ease;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
         }
         .video-watermark span {
             color: rgba(255, 255, 255, 0.7);
@@ -86,7 +86,7 @@
             display: flex;
             gap: 6px;
             align-items: center;
-            transition: all 0.2s ease;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
         }
 
         .top-btn {
@@ -223,7 +223,7 @@
             justify-content: center;
             z-index: 10;
             pointer-events: none;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
         }
         .cool-play-btn {
             width: 60px;
@@ -316,8 +316,8 @@
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         
         /* সম্পূর্ণ মেনু ও গাদাগাদি হাইড করার ক্লাস */
-        .ui-hidden { opacity: 0 !important; pointer-events: none !important; }
-        .shaka-controls-container { transition: opacity 0.2s ease !important; }
+        .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+        .shaka-controls-container { transition: opacity 0.2s ease, visibility 0.2s ease !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }  
     </style>  
 </head>  
@@ -473,7 +473,7 @@
                 }
             });
 
-            // FIX: ওয়ান-ট্যাপ টগল মেকানিজম (কন্ট্রোল শো/হাইড)
+            // FIX: ওয়ান-ট্যাপ টগল মেকানিজম (কন্ট্রোল, তালা, ওয়াটারমার্ক সব একসাথে শো/হাইড হবে)
             container.addEventListener('click', (e) => {
                 if (isLocked) return;
                 
@@ -487,14 +487,12 @@
                 controlsVisible = !controlsVisible;
 
                 if (controlsVisible) {
-                    // Shaka-র ডিফল্ট ডার্ক শ্যাডো ব্যাকগ্রাউন্ড অন করা
                     shakaControls.removeAttribute('disabled');
                     shakaControls.classList.remove('ui-hidden');
                     topLeftPanel.classList.remove('ui-hidden');
                     telegramLink.classList.remove('ui-hidden');
                     if (video.paused) coolPlayOverlay.classList.remove('ui-hidden');
                 } else {
-                    // Shaka-র ব্যাকগ্রাউন্ড শ্যাডোসসহ সম্পূর্ণ প্যানেল ভ্যানিশ করা
                     shakaControls.setAttribute('disabled', 'true');
                     shakaControls.classList.add('ui-hidden');
                     topLeftPanel.classList.add('ui-hidden');
@@ -503,7 +501,7 @@
                 }
             });
 
-            // ইভেন্ট বাবলিং বন্ধ করা যাতে বাটনগুলোতে ক্লিক করলে মেনু না হারায়
+            // ইভেন্ট বাবলিং বন্ধ করা
             shakaControls.addEventListener('click', (e) => e.stopPropagation());
             topLeftPanel.addEventListener('click', (e) => e.stopPropagation());
             serverPopup.addEventListener('click', (e) => e.stopPropagation());
@@ -611,6 +609,7 @@
                 serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex';
             });
 
+            // FIX: লক করা অবস্থায় অন্য সব প্যানেল (কন্ট্রোল, ওয়াটারমার্ক) সাথে সাথে ভ্যানিশ করার লজিক
             lockBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -619,13 +618,19 @@
                 if(isLocked) {
                     container.classList.add('player-locked');
                     lockIcon.innerText = 'lock';
-                    telegramLink.style.pointerEvents = 'none';
+                    telegramLink.classList.add('ui-hidden');
                     serverPopup.style.display = 'none';
                     coolPlayOverlay.classList.add('ui-hidden');
+                    shakaControls.setAttribute('disabled', 'true');
+                    shakaControls.classList.add('ui-hidden');
+                    controlsVisible = false;
                 } else {
                     container.classList.remove('player-locked');
                     lockIcon.innerText = 'lock_open';
-                    telegramLink.style.pointerEvents = 'auto';
+                    shakaControls.removeAttribute('disabled');
+                    shakaControls.classList.remove('ui-hidden');
+                    telegramLink.classList.remove('ui-hidden');
+                    controlsVisible = true;
                     if (video.paused) coolPlayOverlay.classList.remove('ui-hidden');
                 }
             });
@@ -655,7 +660,6 @@
                     container.classList.remove('is-fullscreen');
                     lockIcon.innerText = 'lock_open';
                     fsIcon.innerText = 'fullscreen';
-                    telegramLink.style.pointerEvents = 'auto';
                     brightness = 100;
                     document.getElementById('brightnessOverlay').style.opacity = 0;
                     serverPopup.style.display = 'none';
