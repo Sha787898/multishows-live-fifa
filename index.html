@@ -41,12 +41,11 @@
             background: #000;
         }  
         
-        /* FIX: ভিডিও ফ্রেম রেশিও ফিক্স (স্ট্রেচ বা ক্রপ হবে না, ব্ল্যাক বার সহ অরিজিনাল রেশিও বজায় থাকবে) */
         video {  
             width: 100% !important;  
             height: 100% !important;  
             background: #000 !important;  
-            object-fit: contain !important; /* ভিডিওর আসল আকৃতি ধরে রাখবে */
+            object-fit: contain !important; 
         }  
 
         #brightnessOverlay {
@@ -324,9 +323,12 @@
         .shaka-volume-bar-container { display: none !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         
-        /* FIX: ডাবল মেনু হাইড করার মাস্টার রুল (Shaka UI এর এক্সট্রা সব এলিমেন্ট ভ্যানিশ রাখবে) */
+        /* 🛠️ CRITICAL FIX: ডাবল বার রিমুভ করার প্রফেশনাল মেকানিজম (কন্ট্রোল প্যানেল থাকবে, শুধু নিচের এক্সট্রা শ্যাডো বার হাইড হবে) */
         .shaka-bottom-controls {
-            display: none !important; /* Shaka-র এক্সট্রা ডাবল বটম বার ব্লক */
+            display: flex !important; 
+        }
+        .shaka-controls-container .shaka-bottom-controls + .shaka-bottom-controls {
+            display: none !important; /* ডাবল তৈরি হওয়া এক্সট্রা সেকশন ব্লক */
         }
         
         .ui-hidden { 
@@ -494,7 +496,6 @@
                 }
             });
 
-            // FIX: ওয়ান-ট্যাপ ফিক্স (কন্ট্রোল বার হাইড ও শো লজিক)
             container.addEventListener('click', (e) => {
                 if (isLocked) return;
                 
