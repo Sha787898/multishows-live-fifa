@@ -273,7 +273,7 @@
         let isPlayerFullscreen = false; 
         let brightness = 100; 
 
-        // --- MULTI-SERVER CONFIGURATION (FIXED COMMAS) ---
+        // --- MULTI-SERVER CONFIGURATION (FIXED COMMAS & BRACKETS) ---
         const serverList = [
             {
                 name: "SERVER 1",
@@ -294,12 +294,12 @@
                 name: "SERVER 4",
                 url: "https://a121aivottepl-a.akamaihd.net/gru-nitro/live/clients/dash/enc/jo3rmhhp2r/out/v1/50656942ce4e40a1be824c9d83578fe9/cenc.mpd",
                 clearKeys: { "34475edab991ad5e92548aebd710410a": "501b209cccd323ac00bf5ac15b406cb4" }
-            }
+            }, // <-- এখানে কমা ফিক্স করা হয়েছে
             {
                 name: "SERVER 5",
                 url: "https://live-oneapp-prd-news.akamaized.net/Content/CMAF_OL2-CTR-4s-v2/Live/channel(kvea)/master.mpd",
                 clearKeys: { "ce7ab3022e753307997f58afe001bac4": "72d631a66e635c60829a0fe7705516c1" }
-        }
+            } // <-- এখানে ক্লোজিং ব্লক ফিক্স করা হয়েছে
         ];
 
         let currentServerIndex = 0;
