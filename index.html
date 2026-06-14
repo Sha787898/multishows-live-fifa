@@ -80,7 +80,7 @@
             color: #fff;
         }
 
-        /* --- FIXED SERVER SWITCH PANEL (LEFT SIDE - INDEPENDENT) --- */
+        /* --- FIXED SERVER SWITCH PANEL --- */
         .top-left-panel {
             position: absolute;
             top: 12px; 
@@ -89,12 +89,13 @@
             display: flex;
             gap: 6px;
             align-items: center;
+            transition: opacity 0.2s ease;
         }
 
         .top-btn {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
             height: 24px; 
             padding: 0 10px;
             border-radius: 6px; 
@@ -125,30 +126,29 @@
         .player-locked #lockBtn span { font-size: 15px; }
         .player-locked .shaka-controls-container { display: none !important; }
 
-        /* --- SERVER DROP-DOWN MENU WITH SCROLLBAR & AUTO-TOGGLE --- */
+        /* --- SERVER DROP-DOWN MENU (CLEAN PREMIUM THEME) --- */
         .server-popup {
             position: absolute;
             top: 42px; 
             left: 12px;
-            background: rgba(10, 10, 10, 0.98);
+            background: rgba(15, 15, 15, 0.96);
             backdrop-filter: blur(14px);
-            border: 1px solid rgba(225, 29, 72, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             padding: 6px;
             display: none;
             flex-direction: column;
             gap: 4px;
-            width: 140px;
+            width: 145px;
             z-index: 101;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
         }
         
-        /* স্ক্রোল কাস্টমাইজেশন */
         .server-list-wrapper {
             display: flex;
             flex-direction: column;
             gap: 4px;
-            max-height: 160px; /* ১০টি সার্ভার থাকলে বক্স বড় হবে না, ভেতরে স্ক্রোল হবে */
+            max-height: 150px; 
             overflow-y: auto;
             padding-right: 2px;
         }
@@ -156,21 +156,20 @@
             width: 4px;
         }
         .server-list-wrapper::-webkit-scrollbar-thumb {
-            background: rgba(225, 29, 72, 0.4);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 10px;
         }
 
-        /* অটো সুইচ টগল বাটন স্টাইল */
         .toggle-wrapper {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding-bottom: 6px;
             margin-bottom: 4px;
         }
         .toggle-btn {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #888;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #ccc;
             font-size: 9px;
             font-weight: 700;
             padding: 5px;
@@ -185,18 +184,18 @@
         .toggle-btn.auto-on {
             border-color: #22c55e;
             color: #22c55e;
-            background: rgba(34, 197, 94, 0.1);
+            background: rgba(34, 197, 94, 0.08);
         }
         .toggle-btn.auto-off {
             border-color: #ef4444;
             color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.08);
         }
 
         .server-popup button.server-item-btn {
             background: transparent;
             border: none;
-            color: #ffffff;
+            color: rgba(255, 255, 255, 0.8);
             padding: 6px 10px;
             text-align: left;
             font-size: 10px;
@@ -210,15 +209,19 @@
             width: 100%;
         }
         .server-popup button.server-item-btn:hover {
-            background: rgba(225, 29, 72, 0.2);
-            color: #E11D48;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
         }
         .server-popup button.server-item-btn.active {
             background: #E11D48;
             color: #fff;
         }
 
-        /* --- COOL MODERN PLAY BUTTON OVERLAY --- */
+        /* --- SHAKA DEFAULT LARGE WHITE CIRCLE REMOVAL --- */
+        .shaka-play-button-container { display: none !important; }
+        .shaka-play-button { display: none !important; }
+
+        /* --- COOL PREMIUM PLAY BUTTON OVERLAY --- */
         .cool-play-overlay {
             position: absolute;
             inset: 0;
@@ -227,12 +230,12 @@
             justify-content: center;
             z-index: 10;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
         .cool-play-btn {
-            width: 65px;
-            height: 65px;
-            background: rgba(10, 10, 10, 0.75);
+            width: 60px;
+            height: 60px;
+            background: rgba(10, 10, 10, 0.8);
             border: 2px solid #E11D48;
             border-radius: 50%;
             display: flex;
@@ -240,19 +243,20 @@
             justify-content: center;
             cursor: pointer;
             pointer-events: auto;
-            box-shadow: 0 0 20px rgba(225, 29, 72, 0.5);
+            box-shadow: 0 0 20px rgba(225, 29, 72, 0.4);
             backdrop-filter: blur(8px);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .cool-play-btn span {
             color: #fff;
-            font-size: 32px;
+            font-size: 30px;
             transition: transform 0.2s;
+            margin-left: 2px; /* প্লে অ্যারো আইকনটি একদম সেন্টারে রাখার জন্য */
         }
         .cool-play-btn:hover {
-            transform: scale(1.1);
+            transform: scale(1.08);
             background: #E11D48;
-            box-shadow: 0 0 30px rgba(225, 29, 72, 0.8);
+            box-shadow: 0 0 25px rgba(225, 29, 72, 0.7);
         }
 
         /* --- GESTURE OSD INDICATORS --- */
@@ -295,11 +299,18 @@
             color: #E11D48 !important;
         }
         
-        /* ভলিউম কন্ট্রোল বার রিমুভ (শুধুমাত্র মিউট বাটন থাকবে) */
         .shaka-volume-bar-container { display: none !important; }
-        
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         
+        /* UI হাইড স্টেট ক্লাসের জন্য ট্রানজিশন */
+        .ui-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        .shaka-controls-container {
+            transition: opacity 0.2s ease !important;
+        }
+
         /* Modern Loader */
         .custom-loader {
             position: absolute;
@@ -350,7 +361,7 @@
 
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
         
-        <div class="top-left-panel">
+        <div class="top-left-panel" id="topLeftPanel">
             <button class="top-btn" id="serverMenuBtn" title="Change Server">
                 <span class="material-icons">dns</span> <span id="currentServerLabel">SERVER 1</span>
             </button>
@@ -376,9 +387,10 @@
         let isLocked = false;
         let isPlayerFullscreen = false; 
         let brightness = 100; 
-        let autoSwitchEnabled = true; // অটো সার্ভার সুইচ ট্র্যাকিং ভ্যারিয়েবল
+        let autoSwitchEnabled = true; 
+        let controlsVisible = true; // কন্ট্রোল প্যানেল ভিজিবিলিটি ট্র্যাক করার জন্য
 
-        // --- MULTI-SERVER CONFIGURATION (TOTAL 10 SERVERS STRUCT) ---
+        // --- MULTI-SERVER CONFIGURATION ---
         const serverList = [
             {
                 name: "SERVER 1",
@@ -449,6 +461,7 @@
             const customFullscreenBtn = document.getElementById('customFullscreenBtn');
             const fsIcon = document.getElementById('fsIcon');
             const telegramLink = document.getElementById('telegramLink');
+            const topLeftPanel = document.getElementById('topLeftPanel');
             
             const serverMenuBtn = document.getElementById('serverMenuBtn');
             const serverPopup = document.getElementById('serverPopup');
@@ -471,7 +484,9 @@
                 seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
             });  
 
-            // --- AUTO SWITCH CONFIG LOGIC ---
+            const shakaControls = document.querySelector('.shaka-controls-container');
+
+            // --- AUTO SWITCH TOGGLE ---
             autoSwitchToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
                 autoSwitchEnabled = !autoSwitchEnabled;
@@ -481,7 +496,7 @@
                 } else {
                     autoSwitchToggle.className = "toggle-btn auto-off";
                     autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync_disabled</span> AUTO SWITCH: OFF';
-                    stopFallbackTimer(); // অফ করলে ফালব্যাক টাইমার বন্ধ হবে
+                    stopFallbackTimer(); 
                 }
             });
 
@@ -489,11 +504,9 @@
             function updateCoolPlayBtn() {
                 if (video.paused) {
                     coolPlayIcon.innerText = "play_arrow";
-                    coolPlayOverlay.style.opacity = "1";
-                    coolPlayOverlay.style.pointerEvents = "auto";
+                    coolPlayOverlay.classList.remove('ui-hidden');
                 } else {
-                    coolPlayOverlay.style.opacity = "0";
-                    coolPlayOverlay.style.pointerEvents = "none";
+                    coolPlayOverlay.classList.add('ui-hidden');
                 }
             }
 
@@ -506,16 +519,38 @@
                 }
             });
 
-            video.addEventListener('play', updateCoolPlayBtn);
-            video.addEventListener('pause', updateCoolPlayBtn);
-            video.addEventListener('click', () => {
-                if(isLocked) return;
-                // স্ক্রিনে সিঙ্গেল ক্লিক করলে কুল প্লে-বাটন শো/হাইড হবে প্রোপারলি
-                if(!video.paused) {
-                    coolPlayOverlay.style.opacity = coolPlayOverlay.style.opacity === "1" ? "0" : "1";
-                    coolPlayOverlay.style.pointerEvents = coolPlayOverlay.style.opacity === "1" ? "auto" : "none";
+            // --- TAP TO TOGGLE ALL CONTROLS PANEL ---
+            container.addEventListener('click', (e) => {
+                if (isLocked) return;
+                
+                // সার্ভার মেনু ওপেন থাকলে সেটা বন্ধ করবে, অন্য প্যানেল হাইড করবে না
+                if (serverPopup.style.display === 'flex') {
+                    serverPopup.style.display = 'none';
+                    return;
+                }
+
+                controlsVisible = !controlsVisible;
+
+                if (controlsVisible) {
+                    shakaControls.classList.remove('ui-hidden');
+                    topLeftPanel.classList.remove('ui-hidden');
+                    telegramLink.classList.remove('ui-hidden');
+                    if (video.paused) coolPlayOverlay.classList.remove('ui-hidden');
+                } else {
+                    shakaControls.classList.add('ui-hidden');
+                    topLeftPanel.classList.add('ui-hidden');
+                    telegramLink.classList.add('ui-hidden');
+                    coolPlayOverlay.classList.add('ui-hidden');
                 }
             });
+
+            // কন্ট্রোল এলিমেন্টগুলোর ওপর ক্লিক করলে যাতে মেনু গায়েব না হয়ে যায়
+            shakaControls.addEventListener('click', (e) => e.stopPropagation());
+            topLeftPanel.addEventListener('click', (e) => e.stopPropagation());
+            serverPopup.addEventListener('click', (e) => e.stopPropagation());
+
+            video.addEventListener('play', updateCoolPlayBtn);
+            video.addEventListener('pause', updateCoolPlayBtn);
 
             async function loadServer(index) {
                 if (index >= serverList.length) index = 0; 
@@ -617,10 +652,6 @@
                 serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex';
             });
 
-            document.addEventListener('click', () => {
-                serverPopup.style.display = 'none';
-            });
-
             lockBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -631,14 +662,13 @@
                     lockIcon.innerText = 'lock';
                     telegramLink.style.pointerEvents = 'none';
                     serverPopup.style.display = 'none';
-                    coolPlayOverlay.style.display = 'none';
+                    coolPlayOverlay.classList.add('ui-hidden');
                 } else {
                     container.classList.remove('player-locked');
                     lockIcon.innerText = 'lock_open';
                     telegramLink.style.pointerEvents = 'auto';
-                    coolPlayOverlay.style.display = 'flex';
-                    const controls = document.querySelector('.shaka-controls-container');
-                    if (controls) controls.setAttribute('show-controls', 'true');
+                    if (video.paused) coolPlayOverlay.classList.remove('ui-hidden');
+                    if (shakaControls) shakaControls.setAttribute('show-controls', 'true');
                 }
             });
 
@@ -671,7 +701,12 @@
                     brightness = 100;
                     document.getElementById('brightnessOverlay').style.opacity = 0;
                     serverPopup.style.display = 'none';
-                    coolPlayOverlay.style.display = 'flex';
+                    
+                    controlsVisible = true;
+                    shakaControls.classList.remove('ui-hidden');
+                    topLeftPanel.classList.remove('ui-hidden');
+                    telegramLink.classList.remove('ui-hidden');
+                    updateCoolPlayBtn();
                 }
             }
 
@@ -696,7 +731,8 @@
             }
 
             container.addEventListener('touchstart', (e) => {
-                if (!isPlayerFullscreen || isLocked) return; 
+                // মেইন ফিক্স: লক থাকলে বা সার্ভার মেনু ওপেন থাকলে ব্রাইটনেস/ভলিউম স্লাইড কাজ করবে না
+                if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex') return; 
                 const touch = e.touches[0];
                 startX = touch.clientX;
                 startY = touch.clientY;
@@ -705,7 +741,7 @@
             });
 
             container.addEventListener('touchmove', (e) => {
-                if (!isPlayerFullscreen || isLocked) return; 
+                if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex') return; 
                 const touch = e.touches[0];
                 const deltaY = startY - touch.clientY; 
                 const sensitivity = 0.35; 
