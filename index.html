@@ -19,13 +19,7 @@
     </script>
 
     <style>  
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            -webkit-user-select: none; 
-            user-select: none; 
-        }  
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }  
         html, body {  
             background: #000;  
             height: 100%;  
@@ -38,14 +32,12 @@
             width: 100%;  
             height: 100vh;  
             touch-action: none;
-            background: #000;
         }  
-        
         video {  
-            width: 100% !important;  
-            height: 100% !important;  
-            background: #000 !important;  
-            object-fit: contain !important; 
+            width: 100%;  
+            height: 100%;  
+            background: #000;  
+            object-fit: contain;  
         }  
 
         #brightnessOverlay {
@@ -323,37 +315,14 @@
         .shaka-volume-bar-container { display: none !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         
-        /* 🛡️ CRITICAL FIX: মেইন কন্ট্রোল প্যানেল এর ভেতরের বাটনগুলোকে জোরপূর্বক ভিজিবল করা হলো */
-        .shaka-controls-container, 
-        .shaka-bottom-controls, 
-        .shaka-bottom-controls * {
-            display: flex !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-        
-        /* শুধুমাত্র শাকা প্লেয়ারের এক্সট্রা ডুপ্লিকেট নিচের শ্যাডো বারটিকে হাইড করার জন্য ট্রিক */
+        /* 🛠️ SPECIFIC TARGET FIX: অতিরিক্ত নিচের মেনু বারটিকে হাইড করার নিখুঁত নিয়ম */
         .shaka-bottom-controls + .shaka-bottom-controls {
             display: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
         }
         
-        /* স্পেসার এবং পজিশনিং ঠিক রাখার জন্য ডিসপ্লে ইনহেরিট করা হলো */
-        .shaka-spacer {
-            flex-grow: 1 !important;
-        }
-        
-        .ui-hidden { 
-            opacity: 0 !important; 
-            visibility: hidden !important; 
-            pointer-events: none !important; 
-        }
-        
-        .shaka-controls-container { 
-            transition: opacity 0.2s ease, visibility 0.2s ease !important; 
-        }
-        
+        /* সম্পূর্ণ মেনু ও গাদাগাদি হাইড করার ক্লাস */
+        .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+        .shaka-controls-container { transition: opacity 0.2s ease, visibility 0.2s ease !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }  
     </style>  
 </head>  
@@ -381,7 +350,7 @@
             <div id="statusText" class="loading-text">LOADING MULTISHOWS...</div>
         </div>
 
-        <video autoplay playsinline id="video" class="shaka-video" style="object-fit: contain;" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
+        <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>  
         
         <div class="top-left-panel" id="topLeftPanel">
             <button class="top-btn" id="serverMenuBtn" title="Change Server">
