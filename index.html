@@ -333,7 +333,7 @@
             box-shadow: 0 0 10px rgba(225, 29, 72, 0.6);
         }
 
-        /* ফিক্স: ডাবল মেনুবার আসা রোধ করা ও পারফেক্ট ওয়ান-ট্যাপ টগল */
+        /* ওয়ান-ট্যাপ টগল ও ইউজার ইন্টারফেস ফিক্স */
         .ui-hidden {
             opacity: 0 !important;
             visibility: hidden !important;
@@ -446,13 +446,15 @@
 
             const player = new shaka.Player(video);
             
-            // ফিক্স: Shaka UI বিল্ট-ইন ওভারলে কনফিগারেশন
+            // ফিক্স: 'mute' এবং 'picture_in_picture' (মিনিমাইজ) বাটন এখানে আবার যোগ করা হয়েছে
             const ui = new shaka.ui.Overlay(player, container, video);
             ui.configure({
                 controlPanelElements: [
                     'play_pause',
                     'time_and_duration',
+                    'mute',
                     'spacer',
+                    'picture_in_picture',
                     'quality',
                     'fullscreen'
                 ],
@@ -463,7 +465,6 @@
                 }
             });
 
-            // Shaka-এর কন্টেইনার রি-সিলেক্ট করার জন্য একটু ডিলে ব্যবহার করা হয়েছে যেন এটি DOM-এ জেনারেট হতে পারে
             let shakaControls = null;
             setTimeout(() => {
                 shakaControls = document.querySelector('.shaka-controls-container');
@@ -503,7 +504,7 @@
                 }
             });
 
-            // FIX: ওয়ান-ট্যাপ পারফেক্ট শো/হাইড মেকানিজম
+            // ওয়ান-ট্যাপ নিখুঁত হাইড/শো লজিক
             container.addEventListener('click', (e) => {
                 if (isLocked) return;
 
