@@ -226,12 +226,12 @@
             background: #E11D48;
             color: #fff;
         }
-        .shaka-play-button-container {
+        
+        /* Shaka এর নিজস্ব প্লে বাটন হাইড */
+        .shaka-play-button-container, .shaka-play-button {
             display: none !important;
         }
-        .shaka-play-button {
-            display: none !important;
-        }
+        
         .cool-play-overlay {
             position: absolute;
             inset: 0;
@@ -333,14 +333,22 @@
             box-shadow: 0 0 10px rgba(225, 29, 72, 0.6);
         }
 
-        /* ওয়ান-ট্যাপ টগল ও ইউজার ইন্টারফেস ফিক্স */
+        /* CRITICAL FIX: ডাবল মেনুবার ও ফ্রেমের বাইরে চলে যাওয়া রোধ করার CSS */
+        .shaka-controls-container {
+            display: flex !important;
+            opacity: 1;
+            transition: opacity 0.2s ease, visibility 0.2s ease !important;
+        }
+        .shaka-bottom-controls {
+            display: flex !important;
+            padding: 0 12px !important;
+            margin-bottom: 8px !important;
+        }
+        /* কাস্টম ক্লাস দিয়ে ফোর্সড শো/হাইড মেকানিজম */
         .ui-hidden {
             opacity: 0 !important;
             visibility: hidden !important;
             pointer-events: none !important;
-        }
-        .shaka-controls-container {
-            transition: opacity 0.2s ease, visibility 0.2s ease !important;
         }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg {
             display: none !important;
@@ -366,6 +374,7 @@
             <div id="statusText" class="loading-text">LOADING MULTISHOWS...</div>
         </div>
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>
+        
         <div class="top-left-panel" id="topLeftPanel">
             <button class="top-btn" id="serverMenuBtn" title="Change Server">
                 <span class="material-icons">dns</span>
@@ -378,6 +387,7 @@
                 <span class="material-icons" id="lockIcon">lock_open</span>
             </button>
         </div>
+        
         <div class="server-popup" id="serverPopup">
             <div class="toggle-wrapper">
                 <button class="toggle-btn auto-on" id="autoSwitchToggle">
@@ -446,7 +456,7 @@
 
             const player = new shaka.Player(video);
             
-            // ফিক্স: 'mute' এবং 'picture_in_picture' (মিনিমাইজ) বাটন এখানে আবার যোগ করা হয়েছে
+            // Shaka UI ইনিশিয়ালাইজেশন এবং মিউট/মিনিমাইজ বাটন ফিক্স
             const ui = new shaka.ui.Overlay(player, container, video);
             ui.configure({
                 controlPanelElements: [
@@ -462,16 +472,12 @@
                     base: 'rgba(255, 255, 255, 0.12)',
                     buffered: 'rgba(255, 255, 255, 0.25)',
                     played: 'rgb(225, 29, 72)'
-                }
+                },
+                // ফিক্স: Shaka-এর নিজস্ব অটো হাইড বন্ধ করে কাস্টম ফেইড টাইমআউট কন্ট্রোল করা
+                fadeDelay: 0 
             });
 
-            let shakaControls = null;
-            setTimeout(() => {
-                shakaControls = document.querySelector('.shaka-controls-container');
-                if (shakaControls) {
-                    shakaControls.addEventListener('click', (e) => e.stopPropagation());
-                }
-            }, 500);
+            const controls = ui.getControls();
 
             autoSwitchToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -504,7 +510,7 @@
                 }
             });
 
-            // ওয়ান-ট্যাপ নিখুঁত হাইড/শো লজিক
+            // FIX: ওয়ান-ট্যাপ পারফেক্ট টগল মেকানিজম (ডাবল বার বা গাদাগাদি হবে না)
             container.addEventListener('click', (e) => {
                 if (isLocked) return;
 
@@ -514,26 +520,28 @@
                 }
 
                 controlsVisible = !controlsVisible;
-                shakaControls = document.querySelector('.shaka-controls-container');
+                const shakaControls = document.querySelector('.shaka-controls-container');
 
                 if (controlsVisible) {
-                    if (shakaControls) {
-                        shakaControls.removeAttribute('disabled');
-                        shakaControls.classList.remove('ui-hidden');
-                    }
+                    if (shakaControls) shakaControls.classList.remove('ui-hidden');
                     topLeftPanel.classList.remove('ui-hidden');
                     telegramLink.classList.remove('ui-hidden');
                     if (video.paused) coolPlayOverlay.classList.remove('ui-hidden');
                 } else {
-                    if (shakaControls) {
-                        shakaControls.setAttribute('disabled', 'true');
-                        shakaControls.classList.add('ui-hidden');
-                    }
+                    if (shakaControls) shakaControls.classList.add('ui-hidden');
                     topLeftPanel.classList.add('ui-hidden');
                     telegramLink.classList.add('ui-hidden');
                     coolPlayOverlay.classList.add('ui-hidden');
                 }
             });
+
+            // ইভেন্ট প্রোপাগেশন স্টপ (যাতে বাটনে চাপ দিলে বার হাইড না হয়)
+            setTimeout(() => {
+                const shakaControls = document.querySelector('.shaka-controls-container');
+                if (shakaControls) {
+                    shakaControls.addEventListener('click', (e) => e.stopPropagation());
+                }
+            }, 400);
 
             topLeftPanel.addEventListener('click', (e) => e.stopPropagation());
             serverPopup.addEventListener('click', (e) => e.stopPropagation());
@@ -643,7 +651,7 @@
                 e.stopPropagation();
                 if (!isPlayerFullscreen) return;
                 isLocked = !isLocked;
-                shakaControls = document.querySelector('.shaka-controls-container');
+                const shakaControls = document.querySelector('.shaka-controls-container');
 
                 if(isLocked) {
                     container.classList.add('player-locked');
@@ -651,18 +659,12 @@
                     telegramLink.classList.add('ui-hidden');
                     serverPopup.style.display = 'none';
                     coolPlayOverlay.classList.add('ui-hidden');
-                    if (shakaControls) {
-                        shakaControls.setAttribute('disabled', 'true');
-                        shakaControls.classList.add('ui-hidden');
-                    }
+                    if (shakaControls) shakaControls.classList.add('ui-hidden');
                     controlsVisible = false;
                 } else {
                     container.classList.remove('player-locked');
                     lockIcon.innerText = 'lock_open';
-                    if (shakaControls) {
-                        shakaControls.removeAttribute('disabled');
-                        shakaControls.classList.remove('ui-hidden');
-                    }
+                    if (shakaControls) shakaControls.classList.remove('ui-hidden');
                     telegramLink.classList.remove('ui-hidden');
                     controlsVisible = true;
                     if (video.paused) coolPlayOverlay.classList.remove('ui-hidden');
@@ -688,7 +690,7 @@
             });
 
             function checkFullscreenState() {
-                shakaControls = document.querySelector('.shaka-controls-container');
+                const shakaControls = document.querySelector('.shaka-controls-container');
                 if (document.fullscreenElement || window.innerHeight == screen.height) {
                     isPlayerFullscreen = true;
                     container.classList.add('is-fullscreen');
@@ -704,10 +706,7 @@
                     document.getElementById('brightnessOverlay').style.opacity = 0;
                     serverPopup.style.display = 'none';
                     controlsVisible = true;
-                    if (shakaControls) {
-                        shakaControls.removeAttribute('disabled');
-                        shakaControls.classList.remove('ui-hidden');
-                    }
+                    if (shakaControls) shakaControls.classList.remove('ui-hidden');
                     topLeftPanel.classList.remove('ui-hidden');
                     telegramLink.classList.remove('ui-hidden');
                     updateCoolPlayBtn();
