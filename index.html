@@ -32,21 +32,22 @@
  .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; } 
  #lockBtn { display: none; } 
  .is-fullscreen #lockBtn { display: flex; } 
- .player-locked #customFullscreenBtn, .player-locked #serverMenuBtn { display: none !important; } 
+ .player-locked #customFullscreenBtn, .player-locked #serverMenuBtn, .player-locked #qualityMenuBtn { display: none !important; } 
  .player-locked #lockBtn { background: #E11D48 !important; border-color: #E11D48 !important; color: #fff; height: 28px; width: 28px; } 
  .player-locked #lockBtn span { font-size: 15px; } 
  .player-locked .shaka-controls-container { display: none !important; } 
- .server-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 145px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); } 
- .server-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; padding-right: 2px; } 
- .server-list-wrapper::-webkit-scrollbar { width: 4px; } 
- .server-list-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; } 
+ .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); } 
+ .quality-popup { left: 172px; width: 175px; } 
+ .server-list-wrapper, .quality-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 2px; } 
+ .server-list-wrapper::-webkit-scrollbar, .quality-list-wrapper::-webkit-scrollbar { width: 4px; } 
+ .server-list-wrapper::-webkit-scrollbar-thumb, .quality-list-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; } 
  .toggle-wrapper { border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 6px; margin-bottom: 4px; } 
  .toggle-btn { width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #ccc; font-size: 9px; font-weight: 700; padding: 5px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; } 
  .toggle-btn.auto-on { border-color: #22c55e; color: #22c55e; background: rgba(34, 197, 94, 0.08); } 
  .toggle-btn.auto-off { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.08); } 
- .server-popup button.server-item-btn { background: transparent; border: none; color: rgba(255, 255, 255, 0.8); padding: 6px 10px; text-align: left; font-size: 10px; font-weight: 600; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.15s; width: 100%; } 
- .server-popup button.server-item-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; } 
- .server-popup button.server-item-btn.active { background: #E11D48; color: #fff; } 
+ .server-popup button.server-item-btn, .quality-popup button.quality-item-btn { background: transparent; border: none; color: rgba(255, 255, 255, 0.8); padding: 6px 10px; text-align: left; font-size: 10px; font-weight: 600; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.15s; width: 100%; } 
+ .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; } 
+ .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; } 
  .shaka-play-button-container { display: none !important; } 
  .shaka-play-button { display: none !important; } 
  .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.2s ease, visibility 0.2s ease; } 
@@ -56,15 +57,15 @@
  .gesture-indicator { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.8); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 99; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; border: 1px solid rgba(225, 29, 72, 0.25); backdrop-filter: blur(6px); } 
  .custom-loader { position: absolute; top: calc(50% + 55px); left: 50%; transform: translate(-50%, -50%); z-index: 9; pointer-events: none; transition: opacity 0.3s ease; } 
  .loading-text { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(6px); padding: 6px 16px; border-radius: 30px; color: #E11D48; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(225, 29, 72, 0.2); white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); } 
- .shaka-overflow-menu, .shaka-settings-menu { background: rgba(12, 12, 12, 0.94) !important; backdrop-filter: blur(14px) !important; border: 1px solid rgba(225, 29, 72, 0.25) !important; border-radius: 12px !important; box-shadow: 0 12px 35px rgba(0,0,0,0.8) !important; } 
- .shaka-overflow-menu span, .shaka-settings-menu span, .shaka-overflow-menu button, .shaka-settings-menu button { color: #ffffff !important; font-weight: 600 !important; } 
- .shaka-overflow-menu button:hover, .shaka-settings-menu button:hover { background: rgba(225, 29, 72, 0.22) !important; color: #E11D48 !important; } 
  .shaka-volume-bar-container { display: none !important; } 
  .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); } 
  .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; } 
  .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } 
  .shaka-controls-container { transition: opacity 0.2s ease, visibility 0.2s ease !important; } 
  .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; } 
+ /* Shaka এর ডিফল্ট কোয়ালিটি মেনু হাইড করার জন্য */
+ button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; }
+ .shaka-overflow-menu { display: none !important; }
 </style> 
 </head> 
 <body> 
@@ -88,14 +89,18 @@
  <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video> 
  <div class="top-left-panel" id="topLeftPanel"> 
  <button class="top-btn" id="serverMenuBtn" title="Change Server"> 
- <span class="material-icons">dns</span> 
- <span id="currentServerLabel">LOADING...</span> 
+   <span class="material-icons">dns</span> 
+   <span id="currentServerLabel">LOADING...</span> 
  </button> 
+ <button class="top-btn" id="qualityMenuBtn" title="Change Quality">
+   <span class="material-icons">settings</span> 
+   <span id="currentQualityLabel">Auto</span>
+ </button>
  <button class="top-btn btn-circle" id="customFullscreenBtn" title="Toggle Fullscreen"> 
- <span class="material-icons" id="fsIcon">fullscreen</span> 
+   <span class="material-icons" id="fsIcon">fullscreen</span> 
  </button> 
  <button class="top-btn btn-circle" id="lockBtn" title="Lock Screen"> 
- <span class="material-icons" id="lockIcon">lock_open</span> 
+   <span class="material-icons" id="lockIcon">lock_open</span> 
  </button> 
  </div> 
  <div class="server-popup" id="serverPopup"> 
@@ -106,6 +111,9 @@
  </div> 
  <div class="server-list-wrapper" id="serverListWrapper"></div> 
  </div> 
+ <div class="quality-popup" id="qualityPopup">
+   <div class="quality-list-wrapper" id="qualityListWrapper"></div>
+ </div>
 </div> 
 <script> 
  let isLocked = false; 
@@ -156,6 +164,10 @@
  const serverMenuBtn = document.getElementById('serverMenuBtn'); 
  const serverPopup = document.getElementById('serverPopup'); 
  const serverListWrapper = document.getElementById('serverListWrapper'); 
+ const qualityMenuBtn = document.getElementById('qualityMenuBtn');
+ const qualityPopup = document.getElementById('qualityPopup');
+ const qualityListWrapper = document.getElementById('qualityListWrapper');
+ const currentQualityLabel = document.getElementById('currentQualityLabel');
  const autoSwitchToggle = document.getElementById('autoSwitchToggle'); 
  const currentServerLabel = document.getElementById('currentServerLabel'); 
  const coolPlayOverlay = document.getElementById('coolPlayOverlay'); 
@@ -167,44 +179,96 @@
 
  const player = new shaka.Player(video); 
 
- // 🛠 [এখানে ট্র্যাক চেঞ্জার লজিক বসানো হয়েছে]
- // Shaka প্লেয়ারকে ফোর্স করা হচ্ছে একই রেজোলিউশনের সব ব্যান্ডউইথ আলাদা করে রিলিজ করতে
  player.configure({
    streaming: {
      lowLatencyMode: true,
      bufferingGoal: 12,
      rebufferingGoal: 2.5,
-     bufferBehind: 10,
-     alwaysStreamToKeyframe: true
+     bufferBehind: 10
    },
-   abr: {
-     enabled: false // ম্যানুয়াল কোয়ালিটি অপশন আলাদা দেখার জন্য ডিফল্ট অটো এবিআর রেগুলেটর অফ করা হলো
-   }
+   abr: { enabled: true } // শুরুতে অটো স্পিড অন থাকবে
  });
 
- // প্রতিটি ট্র্যাক লোড হওয়ার পর তার রেজোলিউশন এবং Mbps লেবেল তৈরি করার ইভেন্ট
- player.addEventListener('trackschanged', () => {
-   const tracks = player.getVariantTracks();
-   tracks.forEach(track => {
-     if (track.bandwidth) {
-       // বিটরেটকে মেগাবিটে কনভার্ট করা হচ্ছে (যেমন: 9.0 Mbps)
-       const mbps = (track.bandwidth / 1000000).toFixed(1);
-       let resLabel = `${track.height}p`;
-       
-       // যদি ৪K স্ট্রিম পাওয়া যায় (2160p) তবে সেটিকে আলাদা ট্যাগ দেওয়া
-       if (track.height === 2160) resLabel = '4K UHD (2160p)';
-       
-       const fps = Math.round(track.frameRate || 60);
-       // ফাইনাল লেবেল ফরমেট তৈরি করা হলো (যেমন: 1080p60 (9.0 Mbps) HD)
-       track.label = `${resLabel}${fps} (${mbps} Mbps) ${track.height >= 720 ? 'HD' : ''}`;
-     }
+ // 🛠 [কাস্টম কোয়ালিটি ম্যানেজার ইভেন্ট]
+ player.addEventListener('trackschanged', generateQualityMenu);
+ player.addEventListener('variantchanged', updateActiveQualityButton);
+
+ function generateQualityMenu() {
+   qualityListWrapper.innerHTML = '';
+   
+   // অটো অপশন তৈরি করা হলো
+   const autoBtn = document.createElement('button');
+   autoBtn.className = 'quality-item-btn';
+   autoBtn.id = 'quality-btn-auto';
+   autoBtn.innerText = 'Auto (Adaptive)';
+   if(player.getConfiguration().abr.enabled) autoBtn.classList.add('active');
+   
+   autoBtn.addEventListener('click', (e) => {
+     e.stopPropagation();
+     player.configure({ abr: { enabled: true } });
+     currentQualityLabel.innerText = 'Auto';
+     qualityPopup.style.display = 'none';
+     setActiveQualityClass('quality-btn-auto');
    });
- });
+   qualityListWrapper.appendChild(autoBtn);
+
+   // ম্যানিফেস্ট থেকে সব ট্র্যাক তুলে এনে প্রতিটি বিটরেটের জন্য আলাদা বাটন জেনারেট করা হচ্ছে
+   let tracks = player.getVariantTracks();
+   
+   // বিটরেট অনুযায়ী বড় থেকে ছোট ক্রমানুসারে সাজানো হচ্ছে (যেমন: 1080p 9Mbps আগে আসবে)
+   tracks.sort((a, b) => b.bandwidth - a.bandwidth);
+
+   tracks.forEach(track => {
+     const mbps = (track.bandwidth / 1000000).toFixed(1);
+     let heightLabel = `${track.height}p`;
+     if (track.height === 2160) heightLabel = '4K (2160p)';
+     
+     const fps = Math.round(track.frameRate || 60);
+     const btnText = `${heightLabel}${fps} (${mbps} Mbps)`;
+     
+     const btn = document.createElement('button');
+     btn.className = 'quality-item-btn';
+     btn.id = `track-${track.id}`;
+     btn.innerText = btnText;
+     
+     btn.addEventListener('click', (e) => {
+       e.stopPropagation();
+       player.configure({ abr: { enabled: false } }); // ম্যানুয়াল ট্র্যাক সিলেক্ট করলে অটো অফ হবে
+       player.selectVariantTrack(track, true);
+       currentQualityLabel.innerText = `${track.height}p`;
+       qualityPopup.style.display = 'none';
+       setActiveQualityClass(`track-${track.id}`);
+     });
+     
+     qualityListWrapper.appendChild(btn);
+   });
+ }
+
+ function updateActiveQualityButton() {
+   if (player.getConfiguration().abr.enabled) {
+     setActiveQualityClass('quality-btn-auto');
+     currentQualityLabel.innerText = 'Auto';
+   } else {
+     const tracks = player.getVariantTracks();
+     const activeTrack = tracks.find(t => t.active);
+     if (activeTrack) {
+       setActiveQualityClass(`track-${activeTrack.id}`);
+       currentQualityLabel.innerText = `${activeTrack.height}p`;
+     }
+   }
+ }
+
+ function setActiveQualityClass(activeId) {
+   const buttons = qualityListWrapper.querySelectorAll('.quality-item-btn');
+   buttons.forEach(b => b.classList.remove('active'));
+   const activeBtn = document.getElementById(activeId);
+   if (activeBtn) activeBtn.classList.add('active');
+ }
 
  const ui = new shaka.ui.Overlay(player, container, video); 
  ui.configure({ 
  controlPanelElements: [ 
- 'play_pause', 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'quality', 'fullscreen' 
+ 'play_pause', 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' 
  ], 
  seekBarColors: { 
  base: 'rgba(255, 255, 255, 0.12)', 
@@ -247,8 +311,9 @@
 
  container.addEventListener('click', (e) => { 
  if (isLocked) return; 
- if (serverPopup.style.display === 'flex') { 
+ if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') { 
  serverPopup.style.display = 'none'; 
+ qualityPopup.style.display = 'none';
  return; 
  } 
  controlsVisible = !controlsVisible; 
@@ -270,6 +335,7 @@
  shakaControls.addEventListener('click', (e) => e.stopPropagation()); 
  topLeftPanel.addEventListener('click', (e) => e.stopPropagation()); 
  serverPopup.addEventListener('click', (e) => e.stopPropagation()); 
+ qualityPopup.addEventListener('click', (e) => e.stopPropagation());
  video.addEventListener('play', updateCoolPlayBtn); 
  video.addEventListener('pause', updateCoolPlayBtn); 
 
@@ -360,8 +426,16 @@
  serverMenuBtn.addEventListener('click', (e) => { 
  e.preventDefault(); 
  e.stopPropagation(); 
+ qualityPopup.style.display = 'none';
  serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex'; 
  }); 
+
+ qualityMenuBtn.addEventListener('click', (e) => {
+ e.preventDefault();
+ e.stopPropagation();
+ serverPopup.style.display = 'none';
+ qualityPopup.style.display = (qualityPopup.style.display === 'flex') ? 'none' : 'flex';
+ });
 
  lockBtn.addEventListener('click', (e) => { 
  e.preventDefault(); 
@@ -373,6 +447,7 @@
  lockIcon.innerText = 'lock'; 
  telegramLink.classList.add('ui-hidden'); 
  serverPopup.style.display = 'none'; 
+ qualityPopup.style.display = 'none';
  coolPlayOverlay.classList.add('ui-hidden'); 
  shakaControls.setAttribute('disabled', 'true'); 
  shakaControls.classList.add('ui-hidden'); 
@@ -421,6 +496,7 @@
  brightness = 100; 
  document.getElementById('brightnessOverlay').style.opacity = 0; 
  serverPopup.style.display = 'none'; 
+ qualityPopup.style.display = 'none';
  controlsVisible = true; 
  shakaControls.removeAttribute('disabled'); 
  shakaControls.classList.remove('ui-hidden'); 
@@ -452,7 +528,7 @@
  } 
 
  container.addEventListener('touchstart', (e) => { 
- if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex') return; 
+ if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return; 
  const touch = e.touches[0]; 
  startX = touch.clientX; 
  startY = touch.clientY; 
@@ -461,7 +537,7 @@
  }); 
 
  container.addEventListener('touchmove', (e) => { 
- if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex') return; 
+ if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return; 
  const touch = e.touches[0]; 
  const deltaY = startY - touch.clientY; 
  const sensitivity = 0.35; 
