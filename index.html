@@ -120,7 +120,6 @@
 
  async function fetchSecureServers() { 
  try { 
- // ক্যাশ ফ্রি ডাটা টানার জন্য টাইমস্ট্যাম্প প্যারামিটার যুক্ত করা হলো
  const response = await fetch('https://solitary-meadow-ecemultishows-api.shabidalhasan.workers.dev/?t=' + new Date().getTime(), { 
  method: 'GET'
  }); 
@@ -128,7 +127,6 @@
  
  const rawData = await response.json(); 
  
- // আপনার নতুন ম্যাচ ডাটা অবজেক্ট স্ট্রাকচার হ্যান্ডেল করা
  if(rawData && rawData.match_1 && rawData.match_1.servers) {
  serverList = rawData.match_1.servers; 
  return true; 
@@ -168,6 +166,41 @@
  if (!secureLoadSuccess || serverList.length === 0) return; 
 
  const player = new shaka.Player(video); 
+
+ // 🛠 [এখানে ট্র্যাক চেঞ্জার লজিক বসানো হয়েছে]
+ // Shaka প্লেয়ারকে ফোর্স করা হচ্ছে একই রেজোলিউশনের সব ব্যান্ডউইথ আলাদা করে রিলিজ করতে
+ player.configure({
+   streaming: {
+     lowLatencyMode: true,
+     bufferingGoal: 12,
+     rebufferingGoal: 2.5,
+     bufferBehind: 10,
+     alwaysStreamToKeyframe: true
+   },
+   abr: {
+     enabled: false // ম্যানুয়াল কোয়ালিটি অপশন আলাদা দেখার জন্য ডিফল্ট অটো এবিআর রেগুলেটর অফ করা হলো
+   }
+ });
+
+ // প্রতিটি ট্র্যাক লোড হওয়ার পর তার রেজোলিউশন এবং Mbps লেবেল তৈরি করার ইভেন্ট
+ player.addEventListener('trackschanged', () => {
+   const tracks = player.getVariantTracks();
+   tracks.forEach(track => {
+     if (track.bandwidth) {
+       // বিটরেটকে মেগাবিটে কনভার্ট করা হচ্ছে (যেমন: 9.0 Mbps)
+       const mbps = (track.bandwidth / 1000000).toFixed(1);
+       let resLabel = `${track.height}p`;
+       
+       // যদি ৪K স্ট্রিম পাওয়া যায় (2160p) তবে সেটিকে আলাদা ট্যাগ দেওয়া
+       if (track.height === 2160) resLabel = '4K UHD (2160p)';
+       
+       const fps = Math.round(track.frameRate || 60);
+       // ফাইনাল লেবেল ফরমেট তৈরি করা হলো (যেমন: 1080p60 (9.0 Mbps) HD)
+       track.label = `${resLabel}${fps} (${mbps} Mbps) ${track.height >= 720 ? 'HD' : ''}`;
+     }
+   });
+ });
+
  const ui = new shaka.ui.Overlay(player, container, video); 
  ui.configure({ 
  controlPanelElements: [ 
@@ -247,8 +280,7 @@
  currentServerLabel.innerText = currentServer.name; 
  
  player.configure({ 
- drm: { clearKeys: currentServer.clearKeys }, 
- streaming: { lowLatencyMode: true, bufferingGoal: 12, rebufferingGoal: 2.5, bufferBehind: 10, crossOrigin: 'anonymous' } 
+ drm: { clearKeys: currentServer.clearKeys }
  }); 
 
  statusText.innerText = `CONNECTING ${currentServer.name}...`; 
