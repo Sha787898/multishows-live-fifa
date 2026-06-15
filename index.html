@@ -21,11 +21,11 @@
  .shaka-video-container { position: relative; width: 100%; height: 100vh; touch-action: none; } 
  video { width: 100%; height: 100%; background: #000; object-fit: contain; } 
  #brightnessOverlay { position: absolute; inset: 0; background: black; opacity: 0; pointer-events: none; z-index: 1; } 
- .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: opacity 0.2s ease, visibility 0.2s ease; } 
+ .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: opacity 0.3s ease, visibility 0.3s ease; } 
  .video-watermark span { color: rgba(255, 255, 255, 0.7); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; } 
  .video-watermark:hover { background: #0088ff; border-color: #0088ff; } 
  .video-watermark:hover span { color: #fff; } 
- .top-left-panel { position: absolute; top: 12px; left: 12px; z-index: 100; display: flex; gap: 6px; align-items: center; transition: opacity 0.2s ease, visibility 0.2s ease; } 
+ .top-left-panel { position: absolute; top: 12px; left: 12px; z-index: 100; display: flex; gap: 6px; align-items: center; transition: opacity 0.3s ease, visibility 0.3s ease; } 
  .top-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); height: 24px; padding: 0 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; backdrop-filter: blur(4px); transition: all 0.2s ease; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; } 
  .top-btn.btn-circle { width: 24px; padding: 0; } 
  .top-btn span.material-icons { font-size: 12px; } 
@@ -50,7 +50,7 @@
  .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; } 
  .shaka-play-button-container { display: none !important; } 
  .shaka-play-button { display: none !important; } 
- .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.2s ease, visibility 0.2s ease; } 
+ .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; } 
  .cool-play-btn { width: 60px; height: 60px; background: rgba(10, 10, 10, 0.8); border: 2px solid #E11D48; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); } 
  .cool-play-btn span { color: #fff; font-size: 30px; margin-left: 2px; } 
  .cool-play-btn:hover { transform: scale(1.08); background: #E11D48; box-shadow: 0 0 25px rgba(225, 29, 72, 0.7); } 
@@ -61,7 +61,7 @@
  .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); } 
  .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; } 
  .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } 
- .shaka-controls-container { transition: opacity 0.2s ease, visibility 0.2s ease !important; } 
+ .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; } 
  .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; } 
  button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; } 
  .shaka-overflow-menu { display: none !important; } 
@@ -123,6 +123,7 @@
  let serverList = []; 
  let currentServerIndex = 0; 
  let fallbackTimer = null; 
+ let uiMasterTimer = null; // নতুন মাস্টার টাইমার ট্র্যাকার
  const LOAD_TIMEOUT = 15000; 
 
  async function fetchSecureServers() { 
@@ -212,6 +213,7 @@
      currentQualityLabel.innerText = 'Auto'; 
      qualityPopup.style.display = 'none'; 
      setActiveQualityClass('quality-btn-auto'); 
+     resetMasterTimer();
    }); 
    qualityListWrapper.appendChild(autoBtn); 
 
@@ -238,6 +240,7 @@
        currentQualityLabel.innerText = `${track.height}p`; 
        qualityPopup.style.display = 'none'; 
        setActiveQualityClass(`track-${track.id}`); 
+       resetMasterTimer();
      }); 
      qualityListWrapper.appendChild(btn); 
    }); 
@@ -277,26 +280,71 @@
  }); 
  const shakaControls = document.querySelector('.shaka-controls-container'); 
 
- // 🛠 [মেইন ফিক্সড ইঞ্জিন: Shaka UI এর ইন্টারনাল ভিজিবিলিটি ট্র্যাকিং]
- const controls = ui.getControls();
- 
- // Shaka Player নিজে যখনই হাইড বা শো ইভেন্ট ফায়ার করবে, এই ফাংশনটি আমাদের কাস্টম প্যানেলকেও সিঙ্ক করবে
- controls.addEventListener('visibilitychanged', () => {
+ // Shaka এর নিজস্ব ডিফল্ট টাইমিং লজিক পুরোপুরি ডিসেবল করে দেওয়া হলো
+ ui.getControls().addNativeContainerListener = function() {}; 
+
+ // 🛠 [মাস্টার কন্ট্রোল ও টাইমিং ইঞ্জিন - একদম একসাথে সিঙ্কড]
+ function showAllControls() {
    if (isLocked) return;
-   const isVisible = controls.isOpaque(); // ট্রু হলে কন্ট্রোলস দৃশ্যমান, ফলস হলে হিডেন
-   controlsVisible = isVisible;
-   
-   if (isVisible) {
-     topLeftPanel.classList.remove('ui-hidden');
-     telegramLink.classList.remove('ui-hidden');
-     if (video.paused) coolPlayOverlay.classList.remove('ui-hidden');
+   controlsVisible = true;
+   shakaControls.classList.remove('ui-hidden'); 
+   topLeftPanel.classList.remove('ui-hidden'); 
+   telegramLink.classList.remove('ui-hidden'); 
+   if (video.paused) {
+     coolPlayOverlay.classList.remove('ui-hidden');
    } else {
-     topLeftPanel.classList.add('ui-hidden');
-     telegramLink.classList.add('ui-hidden');
      coolPlayOverlay.classList.add('ui-hidden');
-     serverPopup.style.display = 'none';
-     qualityPopup.style.display = 'none';
    }
+ }
+
+ function hideAllControls() {
+   if (isLocked || video.paused) return; // ভিডিও পজ করা থাকলে হাইড হবে না
+   controlsVisible = false;
+   shakaControls.classList.add('ui-hidden'); 
+   topLeftPanel.classList.add('ui-hidden'); 
+   telegramLink.classList.add('ui-hidden'); 
+   coolPlayOverlay.classList.add('ui-hidden'); 
+   serverPopup.style.display = 'none'; 
+   qualityPopup.style.display = 'none'; 
+ }
+
+ function resetMasterTimer() {
+   clearTimeout(uiMasterTimer);
+   if (!video.paused && !isLocked) {
+     uiMasterTimer = setTimeout(hideAllControls, 4000); // ঠিক ৪ সেকেন্ড পর সব একসাথে হাইড হবে
+   }
+ }
+
+ // স্ক্রিনে টাচ বা ক্লিক করলে সম্পূর্ণ প্যানেল কন্ট্রোল করার লজিক
+ container.addEventListener('click', (e) => { 
+   if (isLocked) return; 
+   
+   // পপআপ ওপেন থাকলে তা বন্ধ হবে এবং টাইমার রিসেট হবে
+   if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') { 
+     serverPopup.style.display = 'none'; 
+     qualityPopup.style.display = 'none'; 
+     resetMasterTimer();
+     return; 
+   } 
+   
+   // এক ক্লিকে টগল শো/হাইড লজিক
+   if (!controlsVisible) {
+     showAllControls();
+     resetMasterTimer();
+   } else {
+     hideAllControls();
+     clearTimeout(uiMasterTimer);
+   }
+ }); 
+
+ // মাউস বা টাচ মুভমেন্ট ট্র্যাকিং
+ container.addEventListener('mousemove', () => {
+   if (!controlsVisible) showAllControls();
+   resetMasterTimer();
+ });
+ container.addEventListener('touchmove', () => {
+   if (!controlsVisible) showAllControls();
+   resetMasterTimer();
  });
 
  autoSwitchToggle.addEventListener('click', (e) => { 
@@ -310,14 +358,17 @@
  autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync_disabled</span> AUTO SWITCH: OFF'; 
  stopFallbackTimer(); 
  } 
+ resetMasterTimer();
  }); 
 
  function updateCoolPlayBtn() { 
  if (video.paused) { 
  coolPlayIcon.innerText = "play_arrow"; 
  if (controlsVisible) coolPlayOverlay.classList.remove('ui-hidden'); 
+ clearTimeout(uiMasterTimer);
  } else { 
  coolPlayOverlay.classList.add('ui-hidden'); 
+ resetMasterTimer();
  } 
  } 
 
@@ -328,21 +379,13 @@
  } else { 
  video.pause(); 
  } 
+ resetMasterTimer();
  }); 
 
- container.addEventListener('click', (e) => { 
- if (isLocked) return; 
- if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') { 
- serverPopup.style.display = 'none'; 
- qualityPopup.style.display = 'none'; 
- return; 
- } 
- }); 
-
- shakaControls.addEventListener('click', (e) => e.stopPropagation()); 
- topLeftPanel.addEventListener('click', (e) => e.stopPropagation()); 
- serverPopup.addEventListener('click', (e) => e.stopPropagation()); 
- qualityPopup.addEventListener('click', (e) => e.stopPropagation()); 
+ shakaControls.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
+ topLeftPanel.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
+ serverPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
+ qualityPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
  video.addEventListener('play', updateCoolPlayBtn); 
  video.addEventListener('pause', updateCoolPlayBtn); 
 
@@ -398,12 +441,15 @@
  loader.style.opacity = '0'; 
  stopFallbackTimer(); 
  updateCoolPlayBtn(); 
+ showAllControls();
+ resetMasterTimer();
  }); 
 
  video.addEventListener('waiting', () => { 
  statusText.innerText = "BUFFERING..."; 
  loader.style.opacity = '1'; 
  if (autoSwitchEnabled) startFallbackTimer(); 
+ clearTimeout(uiMasterTimer);
  }); 
 
  player.addEventListener('error', (event) => { 
@@ -423,6 +469,7 @@
  if(idx !== currentServerIndex) { 
  loadServer(idx); 
  } 
+ resetMasterTimer();
  }); 
  serverListWrapper.appendChild(btn); 
  }); 
@@ -435,6 +482,7 @@
  e.stopPropagation(); 
  qualityPopup.style.display = 'none'; 
  serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex'; 
+ resetMasterTimer();
  }); 
 
  qualityMenuBtn.addEventListener('click', (e) => { 
@@ -442,6 +490,7 @@
  e.stopPropagation(); 
  serverPopup.style.display = 'none'; 
  qualityPopup.style.display = (qualityPopup.style.display === 'flex') ? 'none' : 'flex'; 
+ resetMasterTimer();
  }); 
 
  lockBtn.addEventListener('click', (e) => { 
@@ -456,19 +505,22 @@
  serverPopup.style.display = 'none'; 
  qualityPopup.style.display = 'none'; 
  coolPlayOverlay.classList.add('ui-hidden'); 
- shakaControls.setAttribute('disabled', 'true'); 
  shakaControls.classList.add('ui-hidden'); 
  topLeftPanel.classList.add('ui-hidden');
  controlsVisible = false; 
+ clearTimeout(uiMasterTimer);
  } else { 
  container.classList.remove('player-locked'); 
  lockIcon.innerText = 'lock_open'; 
- shakaControls.removeAttribute('disabled'); 
  shakaControls.classList.remove('ui-hidden'); 
  topLeftPanel.classList.remove('ui-hidden');
  telegramLink.classList.remove('ui-hidden'); 
  controlsVisible = true; 
- if (video.paused) coolPlayOverlay.classList.remove('ui-hidden'); 
+ if (video.paused) {
+   coolPlayOverlay.classList.remove('ui-hidden'); 
+ } else {
+   resetMasterTimer();
+ }
  } 
  }); 
 
@@ -488,6 +540,7 @@
  } 
  fsIcon.innerText = 'fullscreen'; 
  } 
+ resetMasterTimer();
  }); 
 
  function checkFullscreenState() { 
@@ -495,6 +548,7 @@
  isPlayerFullscreen = true; 
  container.classList.add('is-fullscreen'); 
  fsIcon.innerText = 'fullscreen_exit'; 
+ resetMasterTimer();
  } else { 
  isPlayerFullscreen = false; 
  isLocked = false; 
@@ -507,11 +561,11 @@
  serverPopup.style.display = 'none'; 
  qualityPopup.style.display = 'none'; 
  controlsVisible = true; 
- shakaControls.removeAttribute('disabled'); 
  shakaControls.classList.remove('ui-hidden'); 
  topLeftPanel.classList.remove('ui-hidden'); 
  telegramLink.classList.remove('ui-hidden'); 
  updateCoolPlayBtn(); 
+ clearTimeout(uiMasterTimer);
  } 
  } 
 
@@ -543,6 +597,7 @@
  startY = touch.clientY; 
  startVol = video.volume; 
  startBright = brightness; 
+ resetMasterTimer();
  }); 
 
  container.addEventListener('touchmove', (e) => { 
@@ -563,6 +618,7 @@
  video.volume = newVol; 
  showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%'); 
  } 
+ resetMasterTimer();
  }); 
 }); 
 </script> 
