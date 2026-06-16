@@ -4,7 +4,7 @@
 <meta charset="UTF-8"> 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
 <meta name="referrer" content="no-referrer"> 
-<title>MultiShows Premium Live - FIFA World Cup</title> 
+<title>MultiShows Premium Stream</title> 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script> 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css"> 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> 
@@ -25,25 +25,20 @@
  .video-watermark span { color: rgba(255, 255, 255, 0.7); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; } 
  .video-watermark:hover { background: #0088ff; border-color: #0088ff; } 
  .video-watermark:hover span { color: #fff; } 
- 
  .top-left-panel { position: absolute; top: 12px; left: 12px; z-index: 100; display: flex; gap: 6px; align-items: center; transition: opacity 0.3s ease, visibility 0.3s ease; } 
  .top-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); height: 24px; padding: 0 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; backdrop-filter: blur(4px); transition: all 0.2s ease; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; } 
  .top-btn.btn-circle { width: 24px; padding: 0; } 
  .top-btn span.material-icons { font-size: 12px; } 
  .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; } 
- 
- /* 🔒 আল্ট্রা স্টিলথ লক বাটন মোড (একদম ছোট ও সাদা, চোখে পড়বে না) */
  #lockBtn { display: none; } 
  .is-fullscreen #lockBtn { display: flex; } 
  .player-locked #lockBtn { position: absolute !important; top: 12px !important; left: 12px !important; z-index: 210 !important; background: transparent !important; border: none !important; color: rgba(255, 255, 255, 0.2) !important; width: 20px !important; height: 20px !important; opacity: 0.2; transform: scale(0.85); box-shadow: none !important; backdrop-filter: none !important; } 
  .player-locked #lockBtn span { font-size: 13px !important; color: #fff !important; } 
  .player-locked #lockBtn.touch-active { opacity: 0.6; color: rgba(255, 255, 255, 0.8) !important; } 
- 
  .player-locked .top-left-panel > button:not(#lockBtn) { display: none !important; } 
  .player-locked .shaka-controls-container { display: none !important; pointer-events: none !important; } 
- .player-locked .video-watermark { display: none !important; }
- .player-locked .cool-play-overlay { display: none !important; }
- 
+ .player-locked .video-watermark { display: none !important; } 
+ .player-locked .cool-play-overlay { display: none !important; } 
  .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); transition: opacity 0.2s ease, visibility 0.2s ease; } 
  .quality-popup { left: 172px; width: 175px; } 
  .server-list-wrapper, .quality-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 2px; } 
@@ -91,14 +86,13 @@
  <span id="gestureValue">50%</span> 
  </div> 
  <div id="loadingOverlay" class="custom-loader"> 
- <div id="statusText" class="loading-text">LOADING MULTISHOWS LIVE...</div> 
+ <div id="statusText" class="loading-text">LOADING MULTISHOWS...</div> 
  </div> 
  <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video> 
- 
  <div class="top-left-panel" id="topLeftPanel"> 
  <button class="top-btn" id="serverMenuBtn" title="Change Server"> 
-   <span class="material-icons">dns</span> 
-   <span id="currentServerLabel">LOADING...</span> 
+ <span class="material-icons">dns</span> 
+ <span id="currentServerLabel">LOADING...</span> 
  </button> 
  <button class="top-btn" id="qualityMenuBtn" title="Change Quality"> 
    <span class="material-icons">settings</span> 
@@ -109,9 +103,8 @@
  </button> 
  <button class="top-btn btn-circle" id="lockBtn" title="Lock Screen"> 
    <span class="material-icons" id="lockIcon">lock_open</span> 
- </button>
+ </button> 
  </div> 
- 
  <div class="server-popup" id="serverPopup"> 
  <div class="toggle-wrapper"> 
  <button class="toggle-btn auto-on" id="autoSwitchToggle"> 
@@ -134,19 +127,31 @@
  let currentServerIndex = 0; 
  let fallbackTimer = null; 
  let uiMasterTimer = null; 
- let stealthResetTimer = null;
+ let stealthResetTimer = null; 
  const LOAD_TIMEOUT = 15000; 
 
- // হার্ডকোডেড টেস্ট সার্ভার লজিক (আপনার দেওয়া লাইভ স্ট্রিমটি ডিরেক্ট লোড হবে)
+ // 🔒 WORKER API URL (সঠিক সাবডোমেন দিয়ে অটো-কানেক্ট মেকানিজম সেট করা হয়েছে)
+ const WORKER_API_URL = "https://solitary-meadow-ecemultishows-api.workers.dev";
+
  async function fetchSecureServers() { 
-   serverList = [{
-     name: "FIFA LIVE 4K",
-     url: "https://live-pv-ta.amazon.fastly-edge.com/pdx-nitro/live/clients/dash/enc/t2l7sxqngp/out/v1/fc40f22f10374517a2784e1d97cb23f4/cenc.mpd",
-     clearKeys: {
-       "1f68713028d439ec03be07f56c1d6213": "20093db6455160fffed4c394def3193d"
-     }
-   }];
-   return true;
+   try { 
+     const response = await fetch(`${WORKER_API_URL}/api/matches?t=${Date.now()}`, { 
+       method: 'GET',
+       headers: { 'Accept': 'application/json' }
+     }); 
+     if (!response.ok) throw new Error('Security Handshake Failed'); 
+     const rawData = await response.json(); 
+     if(rawData && rawData.match_1 && rawData.match_1.servers) { 
+       serverList = rawData.match_1.servers; 
+       return true; 
+     } else { 
+       throw new Error('Invalid API Response Format'); 
+     } 
+   } catch (error) { 
+     console.error("Security Fetch Error:", error); 
+     document.getElementById('statusText').innerText = "SECURITY ERROR: API CONNECT FAILED."; 
+     return false; 
+   } 
  } 
 
  document.addEventListener('DOMContentLoaded', async () => { 
@@ -179,22 +184,21 @@
  if (!secureLoadSuccess || serverList.length === 0) return; 
 
  const player = new shaka.Player(video); 
-
  player.configure({ 
    streaming: { 
      lowLatencyMode: true, 
      bufferingGoal: 12, 
      rebufferingGoal: 2.5, 
-     bufferBehind: 10,
-     ignoreDeviceCapability: true
+     bufferBehind: 10, 
+     ignoreDeviceCapability: true 
    }, 
-   manifest: {
-     dash: {
-       ignoreMinBufferTime: true,
+   manifest: { 
+     dash: { 
+       ignoreMinBufferTime: true, 
        multiTypeVariantsAllowed: true 
-     },
-     disableVideo: false
-   },
+     }, 
+     disableVideo: false 
+   }, 
    abr: { enabled: true } 
  }); 
 
@@ -203,13 +207,11 @@
 
  function generateQualityMenu() { 
    qualityListWrapper.innerHTML = ''; 
-   
    const autoBtn = document.createElement('button'); 
    autoBtn.className = 'quality-item-btn'; 
    autoBtn.id = 'quality-btn-auto'; 
    autoBtn.innerText = 'Auto (Adaptive)'; 
    if(player.getConfiguration().abr.enabled) autoBtn.classList.add('active'); 
-   
    autoBtn.addEventListener('click', (e) => { 
      e.stopPropagation(); 
      player.configure({ abr: { enabled: true } }); 
@@ -222,20 +224,16 @@
 
    let tracks = player.getVariantTracks(); 
    tracks.sort((a, b) => b.bandwidth - a.bandwidth); 
-
    tracks.forEach(track => { 
      const mbps = (track.bandwidth / 1000000).toFixed(1); 
      let heightLabel = `${track.height}p`; 
      if (track.height === 2160 || track.width === 3840) heightLabel = '4K (2160p)'; 
-     
      const fps = Math.round(track.frameRate || 60); 
      const btnText = `${heightLabel} - ${mbps} Mbps (${fps}fps)`; 
-     
      const btn = document.createElement('button'); 
      btn.className = 'quality-item-btn'; 
      btn.id = `track-${track.id}`; 
      btn.innerText = btnText; 
-     
      btn.addEventListener('click', (e) => { 
        e.stopPropagation(); 
        player.configure({ abr: { enabled: false } }); 
@@ -272,29 +270,19 @@
 
  const ui = new shaka.ui.Overlay(player, container, video); 
  ui.configure({ 
- controlPanelElements: [ 
- 'play_pause', 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' 
- ], 
- seekBarColors: { 
- base: 'rgba(255, 255, 255, 0.12)', 
- buffered: 'rgba(255, 255, 255, 0.25)', 
- played: 'rgb(225, 29, 72)' 
- } 
+   controlPanelElements: [ 'play_pause', 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' ], 
+   seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' } 
  }); 
  const shakaControls = document.querySelector('.shaka-controls-container'); 
-
  ui.getControls().addNativeContainerListener = function() {}; 
 
  function showAllControls() { 
    if (isLocked) { 
-     lockBtn.classList.add('touch-active');
-     clearTimeout(stealthResetTimer);
-     stealthResetTimer = setTimeout(() => {
-       lockBtn.classList.remove('touch-active');
-     }, 2000);
+     lockBtn.classList.add('touch-active'); 
+     clearTimeout(stealthResetTimer); 
+     stealthResetTimer = setTimeout(() => { lockBtn.classList.remove('touch-active'); }, 2000); 
      return; 
    } 
-   
    controlsVisible = true; 
    topLeftPanel.classList.remove('ui-hidden'); 
    shakaControls.classList.remove('ui-hidden'); 
@@ -309,9 +297,7 @@
  function hideAllControls() { 
    if (video.paused && !isLocked) return; 
    controlsVisible = false; 
-   if (!isLocked) {
-     topLeftPanel.classList.add('ui-hidden'); 
-   }
+   if (!isLocked) { topLeftPanel.classList.add('ui-hidden'); } 
    shakaControls.classList.add('ui-hidden'); 
    telegramLink.classList.add('ui-hidden'); 
    coolPlayOverlay.classList.add('ui-hidden'); 
@@ -320,84 +306,51 @@
  } 
 
  function resetMasterTimer() { 
-   if (isLocked) return;
+   if (isLocked) return; 
    clearTimeout(uiMasterTimer); 
-   if (!video.paused) { 
-     uiMasterTimer = setTimeout(hideAllControls, 4000); 
-   } 
+   if (!video.paused) { uiMasterTimer = setTimeout(hideAllControls, 4000); } 
  } 
 
  container.addEventListener('click', (e) => { 
-   if (isLocked) {
-     showAllControls();
-     return;
-   }
-   
+   if (isLocked) { showAllControls(); return; } 
    if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') { 
      serverPopup.style.display = 'none'; 
      qualityPopup.style.display = 'none'; 
      resetMasterTimer(); 
      return; 
    } 
-   
-   if (!controlsVisible) { 
-     showAllControls(); 
-     resetMasterTimer(); 
-   } else { 
-     hideAllControls(); 
-     clearTimeout(uiMasterTimer); 
-   } 
+   if (!controlsVisible) { showAllControls(); resetMasterTimer(); } else { hideAllControls(); clearTimeout(uiMasterTimer); } 
  }); 
 
- container.addEventListener('mousemove', () => { 
-   if (isLocked) return;
-   if (!controlsVisible) showAllControls(); 
-   resetMasterTimer(); 
- }); 
- container.addEventListener('touchmove', (e) => { 
-   if (isLocked) {
-     e.preventDefault(); 
-     return;
-   }
-   if (!controlsVisible) showAllControls(); 
-   resetMasterTimer(); 
- }); 
+ container.addEventListener('mousemove', () => { if (isLocked) return; if (!controlsVisible) showAllControls(); resetMasterTimer(); }); 
+ container.addEventListener('touchmove', (e) => { if (isLocked) { e.preventDefault(); return; } if (!controlsVisible) showAllControls(); resetMasterTimer(); }); 
 
  autoSwitchToggle.addEventListener('click', (e) => { 
- e.stopPropagation(); 
- autoSwitchEnabled = !autoSwitchEnabled; 
- if(autoSwitchEnabled) { 
- autoSwitchToggle.className = "toggle-btn auto-on"; 
- autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync</span> AUTO SWITCH: ON'; 
- } else { 
- autoSwitchToggle.className = "toggle-btn auto-off"; 
- autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync_disabled</span> AUTO SWITCH: OFF'; 
- stopFallbackTimer(); 
- } 
- resetMasterTimer(); 
+   e.stopPropagation(); 
+   autoSwitchEnabled = !autoSwitchEnabled; 
+   if(autoSwitchEnabled) { 
+     autoSwitchToggle.className = "toggle-btn auto-on"; 
+     autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync</span> AUTO SWITCH: ON'; 
+   } else { 
+     autoSwitchToggle.className = "toggle-btn auto-off"; 
+     autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync_disabled</span> AUTO SWITCH: OFF'; 
+     stopFallbackTimer(); 
+   } 
+   resetMasterTimer(); 
  }); 
 
  function updateCoolPlayBtn() { 
- if (video.paused) { 
- coolPlayIcon.innerText = "play_arrow"; 
- if (controlsVisible && !isLocked) coolPlayOverlay.classList.remove('ui-hidden'); 
- clearTimeout(uiMasterTimer); 
- } else { 
- coolPlayOverlay.classList.add('ui-hidden'); 
- resetMasterTimer(); 
- } 
+   if (video.paused) { 
+     coolPlayIcon.innerText = "play_arrow"; 
+     if (controlsVisible && !isLocked) coolPlayOverlay.classList.remove('ui-hidden'); 
+     clearTimeout(uiMasterTimer); 
+   } else { 
+     coolPlayOverlay.classList.add('ui-hidden'); 
+     resetMasterTimer(); 
+   } 
  } 
 
- coolPlayBtn.addEventListener('click', (e) => { 
- e.stopPropagation(); 
- if (video.paused) { 
- video.play(); 
- } else { 
- video.pause(); 
- } 
- resetMasterTimer(); 
- }); 
-
+ coolPlayBtn.addEventListener('click', (e) => { e.stopPropagation(); if (video.paused) { video.play(); } else { video.pause(); } resetMasterTimer(); }); 
  shakaControls.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
  topLeftPanel.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
  serverPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
@@ -406,176 +359,116 @@
  video.addEventListener('pause', updateCoolPlayBtn); 
 
  async function loadServer(index) { 
- if (index >= serverList.length) index = 0; 
- currentServerIndex = index; 
- const currentServer = serverList[currentServerIndex]; 
- currentServerLabel.innerText = currentServer.name; 
- 
- player.configure({ 
- drm: { clearKeys: currentServer.clearKeys } 
- }); 
-
- statusText.innerText = `CONNECTING ${currentServer.name}...`; 
- loader.style.opacity = '1'; 
- if (autoSwitchEnabled) startFallbackTimer(); 
- 
- try { 
- await player.load(currentServer.url); 
- } catch (error) { 
- if (autoSwitchEnabled) handleStreamFailure(); 
- } 
- renderServerPopup(); 
+   if (index >= serverList.length) index = 0; 
+   currentServerIndex = index; 
+   const currentServer = serverList[currentServerIndex]; 
+   currentServerLabel.innerText = currentServer.name; 
+   player.configure({ drm: { clearKeys: currentServer.clearKeys } }); 
+   statusText.innerText = `CONNECTING ${currentServer.name}...`; 
+   loader.style.opacity = '1'; 
+   if (autoSwitchEnabled) startFallbackTimer(); 
+   try { 
+     await player.load(currentServer.url); 
+   } catch (error) { 
+     if (autoSwitchEnabled) handleStreamFailure(); 
+   } 
+   renderServerPopup(); 
  } 
 
- function startFallbackTimer() { 
- if(!autoSwitchEnabled) return; 
- clearTimeout(fallbackTimer); 
- fallbackTimer = setTimeout(() => { 
- handleStreamFailure(); 
- }, LOAD_TIMEOUT); 
- } 
-
- function stopFallbackTimer() { 
- clearTimeout(fallbackTimer); 
- } 
+ function startFallbackTimer() { if(!autoSwitchEnabled) return; clearTimeout(fallbackTimer); fallbackTimer = setTimeout(() => { handleStreamFailure(); }, LOAD_TIMEOUT); } 
+ function stopFallbackTimer() { clearTimeout(fallbackTimer); } 
 
  function handleStreamFailure() { 
- stopFallbackTimer(); 
- if (!autoSwitchEnabled) { 
- statusText.innerText = "BUFFERING (AUTO SWITCH OFF)..."; 
- return; 
- } 
- let nextIndex = (currentServerIndex + 1) % serverList.length; 
- statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING TO SERVER ${nextIndex + 1}...</span>`; 
- loader.style.opacity = '1'; 
- setTimeout(() => { 
- loadServer(nextIndex); 
- }, 2000); 
+   stopFallbackTimer(); 
+   if (!autoSwitchEnabled) { statusText.innerText = "BUFFERING (AUTO SWITCH OFF)..."; return; } 
+   let nextIndex = (currentServerIndex + 1) % serverList.length; 
+   statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING TO SERVER ${nextIndex + 1}...</span>`; 
+   loader.style.opacity = '1'; 
+   setTimeout(() => { loadServer(nextIndex); }, 2000); 
  } 
 
- video.addEventListener('playing', () => { 
- loader.style.opacity = '0'; 
- stopFallbackTimer(); 
- updateCoolPlayBtn(); 
- showAllControls(); 
- resetMasterTimer(); 
- }); 
-
- video.addEventListener('waiting', () => { 
- statusText.innerText = "BUFFERING..."; 
- loader.style.opacity = '1'; 
- if (autoSwitchEnabled) startFallbackTimer(); 
- clearTimeout(uiMasterTimer); 
- }); 
-
- player.addEventListener('error', (event) => { 
- if (autoSwitchEnabled) handleStreamFailure(); 
- }); 
+ video.addEventListener('playing', () => { loader.style.opacity = '0'; stopFallbackTimer(); updateCoolPlayBtn(); showAllControls(); resetMasterTimer(); }); 
+ video.addEventListener('waiting', () => { statusText.innerText = "BUFFERING..."; loader.style.opacity = '1'; if (autoSwitchEnabled) startFallbackTimer(); clearTimeout(uiMasterTimer); }); 
+ player.addEventListener('error', (event) => { if (autoSwitchEnabled) handleStreamFailure(); }); 
 
  function renderServerPopup() { 
- serverListWrapper.innerHTML = ''; 
- serverList.forEach((srv, idx) => { 
- const btn = document.createElement('button'); 
- btn.className = 'server-item-btn'; 
- btn.innerText = srv.name; 
- if(idx === currentServerIndex) btn.classList.add('active'); 
- btn.addEventListener('click', (e) => { 
- e.stopPropagation(); 
- serverPopup.style.display = 'none'; 
- if(idx !== currentServerIndex) { 
- loadServer(idx); 
- } 
- resetMasterTimer(); 
- }); 
- serverListWrapper.appendChild(btn); 
- }); 
+   serverListWrapper.innerHTML = ''; 
+   serverList.forEach((srv, idx) => { 
+     const btn = document.createElement('button'); 
+     btn.className = 'server-item-btn'; 
+     btn.innerText = srv.name; 
+     if(idx === currentServerIndex) btn.classList.add('active'); 
+     btn.addEventListener('click', (e) => { 
+       e.stopPropagation(); 
+       serverPopup.style.display = 'none'; 
+       if(idx !== currentServerIndex) { loadServer(idx); } 
+       resetMasterTimer(); 
+     }); 
+     serverListWrapper.appendChild(btn); 
+   }); 
  } 
 
  await loadServer(0); 
 
- serverMenuBtn.addEventListener('click', (e) => { 
- e.preventDefault(); 
- e.stopPropagation(); 
- qualityPopup.style.display = 'none'; 
- serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex'; 
- resetMasterTimer(); 
- }); 
-
- qualityMenuBtn.addEventListener('click', (e) => { 
- e.preventDefault(); 
- e.stopPropagation(); 
- serverPopup.style.display = 'none'; 
- qualityPopup.style.display = (qualityPopup.style.display === 'flex') ? 'none' : 'flex'; 
- resetMasterTimer(); 
- }); 
+ serverMenuBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); qualityPopup.style.display = 'none'; serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex'; resetMasterTimer(); }); 
+ qualityMenuBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); serverPopup.style.display = 'none'; qualityPopup.style.display = (qualityPopup.style.display === 'flex') ? 'none' : 'flex'; resetMasterTimer(); }); 
 
  lockBtn.addEventListener('click', (e) => { 
- e.preventDefault(); 
- e.stopPropagation(); 
- if (!isPlayerFullscreen) return; 
- 
- isLocked = !isLocked; 
- if(isLocked) { 
- container.classList.add('player-locked'); 
- lockIcon.innerText = 'lock'; 
- 
- serverPopup.style.display = 'none'; 
- qualityPopup.style.display = 'none'; 
- hideAllControls();
- clearTimeout(uiMasterTimer); 
- } else { 
- container.classList.remove('player-locked'); 
- lockIcon.innerText = 'lock_open'; 
- lockBtn.classList.remove('touch-active');
- topLeftPanel.classList.remove('ui-hidden'); 
- showAllControls();
- resetMasterTimer(); 
- } 
+   e.preventDefault(); e.stopPropagation(); 
+   if (!isPlayerFullscreen) return; 
+   isLocked = !isLocked; 
+   if(isLocked) { 
+     container.classList.add('player-locked'); 
+     lockIcon.innerText = 'lock'; 
+     serverPopup.style.display = 'none'; 
+     qualityPopup.style.display = 'none'; 
+     hideAllControls(); 
+     clearTimeout(uiMasterTimer); 
+   } else { 
+     container.classList.remove('player-locked'); 
+     lockIcon.innerText = 'lock_open'; 
+     lockBtn.classList.remove('touch-active'); 
+     topLeftPanel.classList.remove('ui-hidden'); 
+     showAllControls(); 
+     resetMasterTimer(); 
+   } 
  }); 
 
  customFullscreenBtn.addEventListener('click', (e) => { 
- e.preventDefault(); 
- e.stopPropagation(); 
- if (!document.fullscreenElement) { 
- if (container.requestFullscreen) { 
- container.requestFullscreen(); 
- } else if (container.webkitRequestFullscreen) { 
- container.webkitRequestFullscreen(); 
- } 
- fsIcon.innerText = 'fullscreen_exit'; 
- } else { 
- if (document.exitFullscreen) { 
- document.exitFullscreen(); 
- } 
- fsIcon.innerText = 'fullscreen'; 
- } 
- resetMasterTimer(); 
+   e.preventDefault(); e.stopPropagation(); 
+   if (!document.fullscreenElement) { 
+     if (container.requestFullscreen) { container.requestFullscreen(); } else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); } 
+     fsIcon.innerText = 'fullscreen_exit'; 
+   } else { 
+     if (document.exitFullscreen) { document.exitFullscreen(); } 
+     fsIcon.innerText = 'fullscreen'; 
+   } 
+   resetMasterTimer(); 
  }); 
 
  function checkFullscreenState() { 
- if (document.fullscreenElement || window.innerHeight == screen.height) { 
- isPlayerFullscreen = true; 
- container.classList.add('is-fullscreen'); 
- fsIcon.innerText = 'fullscreen_exit'; 
- resetMasterTimer(); 
- } else { 
- isPlayerFullscreen = false; 
- isLocked = false; 
- container.classList.remove('player-locked'); 
- container.classList.remove('is-fullscreen'); 
- lockIcon.innerText = 'lock_open'; 
- fsIcon.innerText = 'fullscreen'; 
- brightness = 100; 
- document.getElementById('brightnessOverlay').style.opacity = 0; 
- serverPopup.style.display = 'none'; 
- qualityPopup.style.display = 'none'; 
- controlsVisible = true; 
- shakaControls.classList.remove('ui-hidden'); 
- topLeftPanel.classList.remove('ui-hidden'); 
- telegramLink.classList.remove('ui-hidden'); 
- updateCoolPlayBtn(); 
- clearTimeout(uiMasterTimer); 
- } 
+   if (document.fullscreenElement || window.innerHeight == screen.height) { 
+     isPlayerFullscreen = true; 
+     container.classList.add('is-fullscreen'); 
+     fsIcon.innerText = 'fullscreen_exit'; 
+     resetMasterTimer(); 
+   } else { 
+     isPlayerFullscreen = false; isLocked = false; 
+     container.classList.remove('player-locked'); 
+     container.classList.remove('is-fullscreen'); 
+     lockIcon.innerText = 'lock_open'; 
+     fsIcon.innerText = 'fullscreen'; 
+     brightness = 100; 
+     document.getElementById('brightnessOverlay').style.opacity = 0; 
+     serverPopup.style.display = 'none'; 
+     qualityPopup.style.display = 'none'; 
+     controlsVisible = true; 
+     shakaControls.classList.remove('ui-hidden'); 
+     topLeftPanel.classList.remove('ui-hidden'); 
+     telegramLink.classList.remove('ui-hidden'); 
+     updateCoolPlayBtn(); 
+     clearTimeout(uiMasterTimer); 
+   } 
  } 
 
  document.addEventListener('fullscreenchange', checkFullscreenState); 
@@ -589,45 +482,22 @@
  let startX, startY, startVol, startBright; 
  let osdTimeout; 
 
- function showOSD(icon, value) { 
- gIcon.innerText = icon; 
- gValue.innerText = value; 
- gOsd.style.opacity = '1'; 
- clearTimeout(osdTimeout); 
- osdTimeout = setTimeout(() => { 
- gOsd.style.opacity = '0'; 
- }, 800); 
- } 
+ function showOSD(icon, value) { gIcon.innerText = icon; gValue.innerText = value; gOsd.style.opacity = '1'; clearTimeout(osdTimeout); osdTimeout = setTimeout(() => { gOsd.style.opacity = '0'; }, 800); } 
 
  container.addEventListener('touchstart', (e) => { 
- if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return; 
- const touch = e.touches[0]; 
- startX = touch.clientX; 
- startY = touch.clientY; 
- startVol = video.volume; 
- startBright = brightness; 
- resetMasterTimer(); 
+   if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return; 
+   const touch = e.touches[0]; startX = touch.clientX; startY = touch.clientY; startVol = video.volume; startBright = brightness; resetMasterTimer(); 
  }); 
 
  container.addEventListener('touchmove', (e) => { 
- if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return; 
- const touch = e.touches[0]; 
- const deltaY = startY - touch.clientY; 
- const sensitivity = 0.35; 
- const screenWidth = container.clientWidth; 
- if (startX < screenWidth / 2) { 
- let newBright = startBright + (deltaY * sensitivity); 
- newBright = Math.max(10, Math.min(100, newBright)); 
- brightness = newBright; 
- bOverlay.style.opacity = (100 - brightness) / 100 * 0.85; 
- showOSD('brightness_6', Math.round(brightness) + '%'); 
- } else { 
- let newVol = startVol + (deltaY / 350); 
- newVol = Math.max(0, Math.min(1, newVol)); 
- video.volume = newVol; 
- showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%'); 
- } 
- resetMasterTimer(); 
+   if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return; 
+   const touch = e.touches[0]; const deltaY = startY - touch.clientY; const sensitivity = 0.35; const screenWidth = container.clientWidth; 
+   if (startX < screenWidth / 2) { 
+     let newBright = startBright + (deltaY * sensitivity); newBright = Math.max(10, Math.min(100, newBright)); brightness = newBright; bOverlay.style.opacity = (100 - brightness) / 100 * 0.85; showOSD('brightness_6', Math.round(brightness) + '%'); 
+   } else { 
+     let newVol = startVol + (deltaY / 350); newVol = Math.max(0, Math.min(1, newVol)); video.volume = newVol; showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%'); 
+   } 
+   resetMasterTimer(); 
  }); 
 }); 
 </script> 
