@@ -1,385 +1,599 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
-    <meta name="referrer" content="no-referrer"> 
-    <title>MultiShows Premium Stream</title> 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css"> 
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FMP9REY96D"></script> 
-    <script> 
-        window.dataLayer = window.dataLayer || []; 
-        function gtag(){dataLayer.push(arguments);} 
-        gtag('js', new Date()); 
-        gtag('config', 'G-FMP9REY96D'); 
-    </script> 
-    <style> 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; } 
-        html, body { background: #000; height: 100%; width: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; } 
-        .shaka-video-container { position: relative; width: 100%; height: 100vh; touch-action: none; } 
-        video { width: 100%; height: 100%; background: #000; object-fit: contain; } 
-        #brightnessOverlay { position: absolute; inset: 0; background: black; opacity: 0; pointer-events: none; z-index: 1; } 
-        .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: opacity 0.3s ease, visibility 0.3s ease; } 
-        .video-watermark span { color: rgba(255, 255, 255, 0.7); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; } 
-        .video-watermark:hover { background: #0088ff; border-color: #0088ff; } 
-        .video-watermark:hover span { color: #fff; } 
-        .top-left-panel { position: absolute; top: 12px; left: 12px; z-index: 100; display: flex; gap: 6px; align-items: center; transition: opacity 0.3s ease, visibility 0.3s ease; } 
-        .top-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); height: 24px; padding: 0 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; backdrop-filter: blur(4px); transition: all 0.2s ease; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; } 
-        .top-btn.btn-circle { width: 24px; padding: 0; } 
-        .top-btn span.material-icons { font-size: 12px; } 
-        .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; } 
-        #lockBtn { display: none; } 
-        .is-fullscreen #lockBtn { display: flex; } 
-        .player-locked #lockBtn { position: absolute !important; top: 12px !important; left: 12px !important; z-index: 210 !important; background: transparent !important; border: none !important; color: rgba(255, 255, 255, 0.2) !important; width: 20px !important; height: 20px !important; opacity: 0.2; transform: scale(0.85); box-shadow: none !important; backdrop-filter: none !important; } 
-        .player-locked #lockBtn span { font-size: 13px !important; color: #fff !important; } 
-        .player-locked #lockBtn.touch-active { opacity: 0.6; color: rgba(255, 255, 255, 0.8) !important; } 
-        .player-locked .top-left-panel > button:not(#lockBtn) { display: none !important; } 
-        .player-locked .shaka-controls-container { display: none !important; pointer-events: none !important; } 
-        .player-locked .video-watermark { display: none !important; } 
-        .player-locked .cool-play-overlay { display: none !important; } 
-        .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); transition: opacity 0.2s ease, visibility 0.2s ease; } 
-        .quality-popup { left: 172px; width: 175px; } 
-        .server-list-wrapper, .quality-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 2px; } 
-        .server-list-wrapper::-webkit-scrollbar, .quality-list-wrapper::-webkit-scrollbar { width: 4px; } 
-        .server-list-wrapper::-webkit-scrollbar-thumb, .quality-list-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; } 
-        .toggle-wrapper { border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 6px; margin-bottom: 4px; } 
-        .toggle-btn { width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #ccc; font-size: 9px; font-weight: 700; padding: 5px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; } 
-        .toggle-btn.auto-on { border-color: #22c55e; color: #22c55e; background: rgba(34, 197, 94, 0.08); } 
-        .toggle-btn.auto-off { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.08); } 
-        .server-popup button.server-item-btn, .quality-popup button.quality-item-btn { background: transparent; border: none; color: rgba(255, 255, 255, 0.8); padding: 6px 10px; text-align: left; font-size: 10px; font-weight: 600; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.15s; width: 100%; } 
-        .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; } 
-        .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; } 
-        .shaka-play-button-container { display: none !important; } 
-        .shaka-play-button { display: none !important; } 
-        .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; } 
-        .cool-play-btn { width: 60px; height: 60px; background: rgba(10, 10, 10, 0.8); border: 2px solid #E11D48; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); } 
-        .cool-play-btn span { color: #fff; font-size: 30px; margin-left: 2px; } 
-        .cool-play-btn:hover { transform: scale(1.08); background: #E11D48; box-shadow: 0 0 25px rgba(225, 29, 72, 0.7); } 
-        .gesture-indicator { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.8); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 99; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; border: 1px solid rgba(225, 29, 72, 0.25); backdrop-filter: blur(6px); } 
-        .custom-loader { position: absolute; top: calc(50% + 55px); left: 50%; transform: translate(-50%, -50%); z-index: 9; pointer-events: none; transition: opacity 0.3s ease; } 
-        .loading-text { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(6px); padding: 6px 16px; border-radius: 30px; color: #E11D48; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(225, 29, 72, 0.2); white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); } 
-        .shaka-volume-bar-container { display: none !important; } 
-        .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); } 
-        .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; } 
-        .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } 
-        .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; } 
-        .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; } 
-        button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; } 
-        .shaka-overflow-menu { display: none !important; } 
-    </style> 
-</head> 
-<body> 
-    <div class="shaka-video-container" data-shaka-player-container id="playerContainer"> 
-        <div id="brightnessOverlay"></div> 
-        <a href="https://t.me/MultiShowsFUN" target="_blank" class="video-watermark" id="telegramLink"> 
-            <span>MultiShows</span> 
-        </a> 
-        <div class="cool-play-overlay" id="coolPlayOverlay"> 
-            <div class="cool-play-btn" id="coolPlayBtn"> 
-                <span class="material-icons" id="coolPlayIcon">play_arrow</span> 
-            </div> 
-        </div> 
-        <div id="gestureOsd" class="gesture-indicator"> 
-            <span class="material-icons" id="gestureIcon">volume_up</span> 
-            <span id="gestureValue">50%</span> 
-        </div> 
-        <div id="loadingOverlay" class="custom-loader"> 
-            <div id="statusText" class="loading-text">LOADING MULTISHOWS...</div> 
-        </div> 
-        <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video> 
-        <div class="top-left-panel" id="topLeftPanel"> 
-            <button class="top-btn" id="serverMenuBtn" title="Change Server"> 
-                <span class="material-icons">dns</span> 
-                <span id="currentServerLabel">LOADING...</span> 
-            </button> 
-            <button class="top-btn" id="qualityMenuBtn" title="Change Quality"> 
-                <span class="material-icons">settings</span> 
-                <span id="currentQualityLabel">Auto</span> 
-            </button> 
-            <button class="top-btn btn-circle" id="customFullscreenBtn" title="Toggle Fullscreen"> 
-                <span class="material-icons" id="fsIcon">fullscreen</span> 
-            </button> 
-            <button class="top-btn btn-circle" id="lockBtn" title="Lock Screen"> 
-                <span class="material-icons" id="lockIcon">lock_open</span> 
-            </button> 
-        </div> 
-        <div class="server-popup" id="serverPopup"> 
-            <div class="toggle-wrapper"> 
-                <button class="toggle-btn auto-on" id="autoSwitchToggle"> 
-                    <span class="material-icons" style="font-size:10px;">sync</span> AUTO SWITCH: ON 
-                </button> 
-            </div> 
-            <div class="server-list-wrapper" id="serverListWrapper"></div> 
-        </div> 
-        <div class="quality-popup" id="qualityPopup"> 
-            <div class="quality-list-wrapper" id="qualityListWrapper"></div> 
-        </div> 
-    </div> 
-    <script> 
-        let isLocked = false; let isPlayerFullscreen = false; let brightness = 100; let autoSwitchEnabled = true; let controlsVisible = true; let serverList = []; let currentServerIndex = 0; let fallbackTimer = null; let uiMasterTimer = null; let stealthResetTimer = null; const LOAD_TIMEOUT = 15000; 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
+    <title>MultiShows Premium Stream</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.8/hls.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FMP9REY96D"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-FMP9REY96D');
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        html, body { background: #000; height: 100%; width: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
+        .shaka-video-container { position: relative; width: 100%; height: 100vh; touch-action: none; }
+        video { width: 100%; height: 100%; background: #000; object-fit: contain; }
+        #brightnessOverlay { position: absolute; inset: 0; background: black; opacity: 0; pointer-events: none; z-index: 1; }
+        .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .video-watermark span { color: rgba(255, 255, 255, 0.7); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; }
+        .video-watermark:hover { background: #0088ff; border-color: #0088ff; }
+        .video-watermark:hover span { color: #fff; }
+        .top-left-panel { position: absolute; top: 12px; left: 12px; z-index: 100; display: flex; gap: 6px; align-items: center; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .top-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); height: 24px; padding: 0 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; backdrop-filter: blur(4px); transition: all 0.2s ease; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; }
+        .top-btn.btn-circle { width: 24px; padding: 0; }
+        .top-btn span.material-icons { font-size: 12px; }
+        .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; }
+        #lockBtn { display: none; }
+        .is-fullscreen #lockBtn { display: flex; }
+        .player-locked #lockBtn { position: absolute !important; top: 12px !important; left: 12px !important; z-index: 210 !important; background: transparent !important; border: none !important; color: rgba(255, 255, 255, 0.2) !important; width: 20px !important; height: 20px !important; opacity: 0.2; transform: scale(0.85); box-shadow: none !important; backdrop-filter: none !important; }
+        .player-locked #lockBtn span { font-size: 13px !important; color: #fff !important; }
+        .player-locked #lockBtn.touch-active { opacity: 0.6; color: rgba(255, 255, 255, 0.8) !important; }
+        .player-locked .top-left-panel > button:not(#lockBtn) { display: none !important; }
+        .player-locked .shaka-controls-container { display: none !important; pointer-events: none !important; }
+        .player-locked .video-watermark { display: none !important; }
+        .player-locked .cool-play-overlay { display: none !important; }
+        .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); transition: opacity 0.2s ease, visibility 0.2s ease; }
+        .quality-popup { left: 172px; width: 175px; }
+        .server-list-wrapper, .quality-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 2px; }
+        .server-list-wrapper::-webkit-scrollbar, .quality-list-wrapper::-webkit-scrollbar { width: 4px; }
+        .server-list-wrapper::-webkit-scrollbar-thumb, .quality-list-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        .toggle-wrapper { border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 6px; margin-bottom: 4px; }
+        .toggle-btn { width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #ccc; font-size: 9px; font-weight: 700; padding: 5px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; }
+        .toggle-btn.auto-on { border-color: #22c55e; color: #22c55e; background: rgba(34, 197, 94, 0.08); }
+        .toggle-btn.auto-off { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.08); }
+        .server-popup button.server-item-btn, .quality-popup button.quality-item-btn { background: transparent; border: none; color: rgba(255, 255, 255, 0.8); padding: 6px 10px; text-align: left; font-size: 10px; font-weight: 600; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.15s; width: 100%; }
+        .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+        .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; }
+        .shaka-play-button-container { display: none !important; }
+        .shaka-play-button { display: none !important; }
+        .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .cool-play-btn { width: 60px; height: 60px; background: rgba(10, 10, 10, 0.8); border: 2px solid #E11D48; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .cool-play-btn span { color: #fff; font-size: 30px; margin-left: 2px; }
+        .cool-play-btn:hover { transform: scale(1.08); background: #E11D48; box-shadow: 0 0 25px rgba(225, 29, 72, 0.7); }
+        .gesture-indicator { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.8); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 99; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; border: 1px solid rgba(225, 29, 72, 0.25); backdrop-filter: blur(6px); }
+        .custom-loader { position: absolute; top: calc(50% + 55px); left: 50%; transform: translate(-50%, -50%); z-index: 9; pointer-events: none; transition: opacity 0.3s ease; }
+        .loading-text { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(6px); padding: 6px 16px; border-radius: 30px; color: #E11D48; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(225, 29, 72, 0.2); white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .shaka-volume-bar-container { display: none !important; }
+        .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
+        .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; }
+        .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+        .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; }
+        .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }
+        button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; }
+        .shaka-overflow-menu { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="shaka-video-container" data-shaka-player-container id="playerContainer">
+        <div id="brightnessOverlay"></div>
+        <a href="https://t.me/MultiShowsFUN" target="_blank" class="video-watermark" id="telegramLink">
+            <span>MultiShows</span>
+        </a>
+        <div class="cool-play-overlay" id="coolPlayOverlay">
+            <div class="cool-play-btn" id="coolPlayBtn">
+                <span class="material-icons" id="coolPlayIcon">play_arrow</span>
+            </div>
+        </div>
+        <div id="gestureOsd" class="gesture-indicator">
+            <span class="material-icons" id="gestureIcon">volume_up</span>
+            <span id="gestureValue">50%</span>
+        </div>
+        <div id="loadingOverlay" class="custom-loader">
+            <div id="statusText" class="loading-text">LOADING MULTISHOWS...</div>
+        </div>
+        <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>
+        <div class="top-left-panel" id="topLeftPanel">
+            <button class="top-btn" id="serverMenuBtn" title="Change Server">
+                <span class="material-icons">dns</span>
+                <span id="currentServerLabel">LOADING...</span>
+            </button>
+            <button class="top-btn" id="qualityMenuBtn" title="Change Quality">
+                <span class="material-icons">settings</span>
+                <span id="currentQualityLabel">Auto</span>
+            </button>
+            <button class="top-btn btn-circle" id="customFullscreenBtn" title="Toggle Fullscreen">
+                <span class="material-icons" id="fsIcon">fullscreen</span>
+            </button>
+            <button class="top-btn btn-circle" id="lockBtn" title="Lock Screen">
+                <span class="material-icons" id="lockIcon">lock_open</span>
+            </button>
+        </div>
+        <div class="server-popup" id="serverPopup">
+            <div class="toggle-wrapper">
+                <button class="toggle-btn auto-on" id="autoSwitchToggle">
+                    <span class="material-icons" style="font-size:10px;">sync</span> AUTO SWITCH: ON
+                </button>
+            </div>
+            <div class="server-list-wrapper" id="serverListWrapper"></div>
+        </div>
+        <div class="quality-popup" id="qualityPopup">
+            <div class="quality-list-wrapper" id="qualityListWrapper"></div>
+        </div>
+    </div>
 
-        // 🛠️ FIXED: সাবডোমেন ইউআরএল ডিরেক্ট ক্লাউডফ্লেয়ার ওয়ার্কার ডোমেনে পয়েন্ট করা হয়েছে
-        async function fetchSecureServers() { 
-            try { 
-                const response = await fetch('https://solitary-meadow-ecemultishows-api.workers.dev/?t=' + new Date().getTime(), { method: 'GET' }); 
-                if (!response.ok) throw new Error('Security Handshake Failed'); 
-                const rawData = await response.json(); 
-                if(rawData && rawData.match_1 && rawData.match_1.servers) { 
-                    serverList = rawData.match_1.servers; 
-                    return true; 
-                } else { 
-                    throw new Error('Invalid API Response Format'); 
-                } 
-            } catch (error) { 
-                console.error("Security Fetch Error:", error); 
-                document.getElementById('statusText').innerText = "SECURITY ERROR: KEY PROTECTED."; 
-                return false; 
-            } 
-        } 
+<script>
+    let isLocked = false;
+    let isPlayerFullscreen = false;
+    let brightness = 100;
+    let autoSwitchEnabled = true;
+    let controlsVisible = true;
+    let serverList = [];
+    let currentServerIndex = 0;
+    let fallbackTimer = null;
+    let uiMasterTimer = null;
+    let stealthResetTimer = null;
+    const LOAD_TIMEOUT = 15000;
 
-        document.addEventListener('DOMContentLoaded', async () => { 
-            shaka.polyfill.installAll(); 
-            if (!shaka.Player.isBrowserSupported()) return; 
-            const video = document.getElementById('video'); 
-            const container = document.getElementById('playerContainer'); 
-            const loader = document.getElementById('loadingOverlay'); 
-            const statusText = document.getElementById('statusText'); 
-            const lockBtn = document.getElementById('lockBtn'); 
-            const lockIcon = document.getElementById('lockIcon'); 
-            const customFullscreenBtn = document.getElementById('customFullscreenBtn'); 
-            const fsIcon = document.getElementById('fsIcon'); 
-            const telegramLink = document.getElementById('telegramLink'); 
-            const topLeftPanel = document.getElementById('topLeftPanel'); 
-            const serverMenuBtn = document.getElementById('serverMenuBtn'); 
-            const serverPopup = document.getElementById('serverPopup'); 
-            const serverListWrapper = document.getElementById('serverListWrapper'); 
-            const qualityMenuBtn = document.getElementById('qualityMenuBtn'); 
-            const qualityPopup = document.getElementById('qualityPopup'); 
-            const qualityListWrapper = document.getElementById('qualityListWrapper'); 
-            const currentQualityLabel = document.getElementById('currentQualityLabel'); 
-            const autoSwitchToggle = document.getElementById('autoSwitchToggle'); 
-            const currentServerLabel = document.getElementById('currentServerLabel'); 
-            const coolPlayOverlay = document.getElementById('coolPlayOverlay'); 
-            const coolPlayBtn = document.getElementById('coolPlayBtn'); 
-            const coolPlayIcon = document.getElementById('coolPlayIcon'); 
-            const secureLoadSuccess = await fetchSecureServers(); 
-            if (!secureLoadSuccess || serverList.length === 0) return; 
-            const player = new shaka.Player(video); 
-            player.configure({ streaming: { lowLatencyMode: true, bufferingGoal: 12, rebufferingGoal: 2.5, bufferBehind: 10, ignoreDeviceCapability: true }, manifest: { dash: { ignoreMinBufferTime: true, multiTypeVariantsAllowed: true }, disableVideo: false }, abr: { enabled: true } }); 
-            player.addEventListener('trackschanged', generateQualityMenu); 
-            player.addEventListener('variantchanged', updateActiveQualityButton); 
+    let hlsInstance = null; // Dual Engine Config for TS Streams
+    let player = null; // Shaka instance holder
 
-            function generateQualityMenu() { 
-                qualityListWrapper.innerHTML = ''; 
-                const autoBtn = document.createElement('button'); 
-                autoBtn.className = 'quality-item-btn'; 
-                autoBtn.id = 'quality-btn-auto'; 
-                autoBtn.innerText = 'Auto (Adaptive)'; 
-                if(player.getConfiguration().abr.enabled) autoBtn.classList.add('active'); 
-                autoBtn.addEventListener('click', (e) => { 
-                    e.stopPropagation(); 
-                    player.configure({ abr: { enabled: true } }); 
-                    currentQualityLabel.innerText = 'Auto'; 
-                    qualityPopup.style.display = 'none'; 
-                    setActiveQualityClass('quality-btn-auto'); 
-                    resetMasterTimer(); 
-                }); 
-                qualityListWrapper.appendChild(autoBtn); 
-                let tracks = player.getVariantTracks(); 
-                tracks.sort((a, b) => b.bandwidth - a.bandwidth); 
-                tracks.forEach(track => { 
-                    const mbps = (track.bandwidth / 1000000).toFixed(1); 
-                    let heightLabel = `${track.height}p`; 
-                    if (track.height === 2160 || track.width === 3840) heightLabel = '4K (2160p)'; 
-                    const fps = Math.round(track.frameRate || 60); 
-                    const btnText = `${heightLabel} - ${mbps} Mbps (${fps}fps)`; 
-                    const btn = document.createElement('button'); 
-                    btn.className = 'quality-item-btn'; 
-                    btn.id = `track-${track.id}`; 
-                    btn.innerText = btnText; 
-                    btn.addEventListener('click', (e) => { 
-                        e.stopPropagation(); 
-                        player.configure({ abr: { enabled: false } }); 
-                        player.selectVariantTrack(track, true); 
-                        currentQualityLabel.innerText = `${track.height}p`; 
-                        qualityPopup.style.display = 'none'; 
-                        setActiveQualityClass(`track-${track.id}`); 
-                        resetMasterTimer(); 
-                    }); 
-                    qualityListWrapper.appendChild(btn); 
-                }); 
-            } 
+    async function fetchSecureServers() {
+        try {
+            const response = await fetch('https://solitary-meadow-ecemultishows-api.shabidalhasan.workers.dev/?t=' + new Date().getTime(), { method: 'GET' });
+            if (!response.ok) throw new Error('Security Handshake Failed');
+            const rawData = await response.json();
+            if(rawData && rawData.match_1 && rawData.match_1.servers) {
+                serverList = rawData.match_1.servers;
+                return true;
+            } else {
+                throw new Error('Invalid API Response Format');
+            }
+        } catch (error) {
+            console.error("Security Fetch Error:", error);
+            document.getElementById('statusText').innerText = "SECURITY ERROR: KEY PROTECTED.";
+            return false;
+        }
+    }
 
-            function updateActiveQualityButton() { 
-                if (player.getConfiguration().abr.enabled) { 
-                    setActiveQualityClass('quality-btn-auto'); 
-                    currentQualityLabel.innerText = 'Auto'; 
-                } else { 
-                    const tracks = player.getVariantTracks(); 
-                    const activeTrack = tracks.find(t => t.active); 
-                    if (activeTrack) { 
-                        setActiveQualityClass(`track-${activeTrack.id}`); 
-                        currentQualityLabel.innerText = `${activeTrack.height}p`; 
-                    } 
-                } 
-            } 
+    document.addEventListener('DOMContentLoaded', async () => {
+        shaka.polyfill.installAll();
+        if (!shaka.Player.isBrowserSupported()) return;
 
-            function setActiveQualityClass(activeId) { 
-                const buttons = qualityListWrapper.querySelectorAll('.quality-item-btn'); 
-                buttons.forEach(b => b.classList.remove('active')); 
-                const activeBtn = document.getElementById(activeId); 
-                if (activeBtn) activeBtn.classList.add('active'); 
-            } 
+        const video = document.getElementById('video');
+        const container = document.getElementById('playerContainer');
+        const loader = document.getElementById('loadingOverlay');
+        const statusText = document.getElementById('statusText');
+        const lockBtn = document.getElementById('lockBtn');
+        const lockIcon = document.getElementById('lockIcon');
+        const customFullscreenBtn = document.getElementById('customFullscreenBtn');
+        const fsIcon = document.getElementById('fsIcon');
+        const telegramLink = document.getElementById('telegramLink');
+        const topLeftPanel = document.getElementById('topLeftPanel');
+        const serverMenuBtn = document.getElementById('serverMenuBtn');
+        const serverPopup = document.getElementById('serverPopup');
+        const serverListWrapper = document.getElementById('serverListWrapper');
+        const qualityMenuBtn = document.getElementById('qualityMenuBtn');
+        const qualityPopup = document.getElementById('qualityPopup');
+        const qualityListWrapper = document.getElementById('qualityListWrapper');
+        const currentQualityLabel = document.getElementById('currentQualityLabel');
+        const autoSwitchToggle = document.getElementById('autoSwitchToggle');
+        const currentServerLabel = document.getElementById('currentServerLabel');
+        const coolPlayOverlay = document.getElementById('coolPlayOverlay');
+        const coolPlayBtn = document.getElementById('coolPlayBtn');
+        const coolPlayIcon = document.getElementById('coolPlayIcon');
 
-            const ui = new shaka.ui.Overlay(player, container, video); 
-            ui.configure({ controlPanelElements: [ 'play_pause', 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' ], seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' } }); 
-            const shakaControls = document.querySelector('.shaka-controls-container'); 
-            ui.getControls().addNativeContainerListener = function() {}; 
+        const secureLoadSuccess = await fetchSecureServers();
+        if (!secureLoadSuccess || serverList.length === 0) return;
 
-            function showAllControls() { 
-                if (isLocked) { 
-                    lockBtn.classList.add('touch-active'); 
-                    clearTimeout(stealthResetTimer); 
-                    stealthResetTimer = setTimeout(() => { lockBtn.classList.remove('touch-active'); }, 2000); 
-                    return; 
-                } 
-                controlsVisible = true; 
-                topLeftPanel.classList.remove('ui-hidden'); 
-                shakaControls.classList.remove('ui-hidden'); 
-                telegramLink.classList.remove('ui-hidden'); 
-                if (video.paused) { coolPlayOverlay.classList.remove('ui-hidden'); } else { coolPlayOverlay.classList.add('ui-hidden'); } 
-            } 
+        // Initialize Native Shaka Base
+        player = new shaka.Player(video);
+        player.configure({
+            streaming: { lowLatencyMode: true, bufferingGoal: 12, rebufferingGoal: 2.5, bufferBehind: 10, ignoreDeviceCapability: true },
+            manifest: { dash: { ignoreMinBufferTime: true, multiTypeVariantsAllowed: true }, disableVideo: false },
+            abr: { enabled: true }
+        });
 
-            function hideAllControls() { 
-                if (video.paused && !isLocked) return; 
-                controlsVisible = false; 
-                if (!isLocked) { topLeftPanel.classList.add('ui-hidden'); } 
-                shakaControls.classList.add('ui-hidden'); 
-                telegramLink.classList.add('ui-hidden'); 
-                coolPlayOverlay.classList.add('ui-hidden'); 
-                serverPopup.style.display = 'none'; 
-                qualityPopup.style.display = 'none'; 
-            } 
+        player.addEventListener('trackschanged', generateQualityMenu);
+        player.addEventListener('variantchanged', updateActiveQualityButton);
 
-            function resetMasterTimer() { 
-                if (isLocked) return; 
-                clearTimeout(uiMasterTimer); 
-                if (!video.paused) { uiMasterTimer = setTimeout(hideAllControls, 4000); } 
-            } 
+        // Quality Engine Switcher
+        function generateQualityMenu() {
+            qualityListWrapper.innerHTML = '';
+            
+            // For TS/HLS Engine
+            if (hlsInstance) {
+                const autoBtn = document.createElement('button');
+                autoBtn.className = 'quality-item-btn active';
+                autoBtn.innerText = 'Adaptive Dynamic';
+                qualityListWrapper.appendChild(autoBtn);
+                return;
+            }
 
-            container.addEventListener('click', (e) => { 
-                if (isLocked) { showAllControls(); return; } 
-                if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') { 
-                    serverPopup.style.display = 'none'; 
-                    qualityPopup.style.display = 'none'; 
-                    resetMasterTimer(); 
-                    return; 
-                } 
-                if (!controlsVisible) { showAllControls(); resetMasterTimer(); } else { hideAllControls(); clearTimeout(uiMasterTimer); } 
-            }); 
+            // For Shaka Engine
+            const autoBtn = document.createElement('button');
+            autoBtn.className = 'quality-item-btn';
+            autoBtn.id = 'quality-btn-auto';
+            autoBtn.innerText = 'Auto (Adaptive)';
+            if(player.getConfiguration().abr.enabled) autoBtn.classList.add('active');
+            autoBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                player.configure({ abr: { enabled: true } });
+                currentQualityLabel.innerText = 'Auto';
+                qualityPopup.style.display = 'none';
+                setActiveQualityClass('quality-btn-auto');
+                resetMasterTimer();
+            });
+            qualityListWrapper.appendChild(autoBtn);
 
-            container.addEventListener('mousemove', () => { if (isLocked) return; if (!controlsVisible) showAllControls(); resetMasterTimer(); }); 
-            container.addEventListener('touchmove', (e) => { if (isLocked) { e.preventDefault(); return; } if (!controlsVisible) showAllControls(); resetMasterTimer(); }); 
+            let tracks = player.getVariantTracks();
+            tracks.sort((a, b) => b.bandwidth - a.bandwidth);
+            tracks.forEach(track => {
+                const mbps = (track.bandwidth / 1000000).toFixed(1);
+                let heightLabel = `${track.height}p`;
+                if (track.height === 2160 || track.width === 3840) heightLabel = '4K (2160p)';
+                const fps = Math.round(track.frameRate || 60);
+                const btnText = `${heightLabel} - ${mbps} Mbps (${fps}fps)`;
+                const btn = document.createElement('button');
+                btn.className = 'quality-item-btn';
+                btn.id = `track-${track.id}`;
+                btn.innerText = btnText;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    player.configure({ abr: { enabled: false } });
+                    player.selectVariantTrack(track, true);
+                    currentQualityLabel.innerText = `${track.height}p`;
+                    qualityPopup.style.display = 'none';
+                    setActiveQualityClass(`track-${track.id}`);
+                    resetMasterTimer();
+                });
+                qualityListWrapper.appendChild(btn);
+            });
+        }
 
-            autoSwitchToggle.addEventListener('click', (e) => { 
-                e.stopPropagation(); 
-                autoSwitchEnabled = !autoSwitchEnabled; 
-                if(autoSwitchEnabled) { 
-                    autoSwitchToggle.className = "toggle-btn auto-on"; 
-                    autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync</span> AUTO SWITCH: ON'; 
-                } else { 
-                    autoSwitchToggle.className = "toggle-btn auto-off"; 
-                    autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync_disabled</span> AUTO SWITCH: OFF'; 
-                    stopFallbackTimer(); 
-                } 
-                resetMasterTimer(); 
-            }); 
+        function updateActiveQualityButton() {
+            if (hlsInstance) return;
+            if (player.getConfiguration().abr.enabled) {
+                setActiveQualityClass('quality-btn-auto');
+                currentQualityLabel.innerText = 'Auto';
+            } else {
+                const tracks = player.getVariantTracks();
+                const activeTrack = tracks.find(t => t.active);
+                if (activeTrack) {
+                    setActiveQualityClass(`track-${activeTrack.id}`);
+                    currentQualityLabel.innerText = `${activeTrack.height}p`;
+                }
+            }
+        }
 
-            function updateCoolPlayBtn() { if (video.paused) { coolPlayIcon.innerText = "play_arrow"; if (controlsVisible && !isLocked) coolPlayOverlay.classList.remove('ui-hidden'); clearTimeout(uiMasterTimer); } else { coolPlayOverlay.classList.add('ui-hidden'); resetMasterTimer(); } } 
-            coolPlayBtn.addEventListener('click', (e) => { e.stopPropagation(); if (video.paused) { video.play(); } else { video.pause(); } resetMasterTimer(); }); 
-            shakaControls.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
-            topLeftPanel.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
-            serverPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
-            qualityPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); }); 
-            video.addEventListener('play', updateCoolPlayBtn); 
-            video.addEventListener('pause', updateCoolPlayBtn); 
+        function setActiveQualityClass(activeId) {
+            const buttons = qualityListWrapper.querySelectorAll('.quality-item-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(activeId);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
 
-            async function loadServer(index) { 
-                if (index >= serverList.length) index = 0; 
-                currentServerIndex = index; 
-                const currentServer = serverList[currentServerIndex]; 
-                currentServerLabel.innerText = currentServer.name; 
-                player.configure({ drm: { clearKeys: currentServer.clearKeys } }); 
-                statusText.innerText = `CONNECTING ${currentServer.name}...`; 
-                loader.style.opacity = '1'; 
-                if (autoSwitchEnabled) startFallbackTimer(); 
-                try { await player.load(currentServer.url); } catch (error) { if (autoSwitchEnabled) handleStreamFailure(); } 
-                renderServerPopup(); 
-            } 
+        const ui = new shaka.ui.Overlay(player, container, video);
+        ui.configure({
+            controlPanelElements: [ 'play_pause', 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' ],
+            seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
+        });
 
-            function startFallbackTimer() { if(!autoSwitchEnabled) return; clearTimeout(fallbackTimer); fallbackTimer = setTimeout(() => { handleStreamFailure(); }, LOAD_TIMEOUT); } 
-            function stopFallbackTimer() { clearTimeout(fallbackTimer); } 
+        const shakaControls = document.querySelector('.shaka-controls-container');
+        ui.getControls().addNativeContainerListener = function() {}; 
 
-            function handleStreamFailure() { 
-                stopFallbackTimer(); 
-                if (!autoSwitchEnabled) { statusText.innerText = "BUFFERING (AUTO SWITCH OFF)..."; return; } 
-                let nextIndex = (currentServerIndex + 1) % serverList.length; 
-                statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING TO SERVER ${nextIndex + 1}...</span>`; 
-                loader.style.opacity = '1'; 
-                setTimeout(() => { loadServer(nextIndex); }, 2000); 
-            } 
+        // Master UI Controls Management
+        function showAllControls() {
+            if (isLocked) {
+                lockBtn.classList.add('touch-active');
+                clearTimeout(stealthResetTimer);
+                stealthResetTimer = setTimeout(() => { lockBtn.classList.remove('touch-active'); }, 2000);
+                return;
+            }
+            controlsVisible = true;
+            topLeftPanel.classList.remove('ui-hidden');
+            shakaControls.classList.remove('ui-hidden');
+            telegramLink.classList.remove('ui-hidden');
+            if (video.paused) { coolPlayOverlay.classList.remove('ui-hidden'); } else { coolPlayOverlay.classList.add('ui-hidden'); }
+        }
 
-            video.addEventListener('playing', () => { loader.style.opacity = '0'; stopFallbackTimer(); updateCoolPlayBtn(); showAllControls(); resetMasterTimer(); }); 
-            video.addEventListener('waiting', () => { statusText.innerText = "BUFFERING..."; loader.style.opacity = '1'; if (autoSwitchEnabled) startFallbackTimer(); clearTimeout(uiMasterTimer); }); 
-            player.addEventListener('error', (event) => { if (autoSwitchEnabled) handleStreamFailure(); }); 
+        function hideAllControls() {
+            if (video.paused && !isLocked) return;
+            controlsVisible = false;
+            if (!isLocked) { topLeftPanel.classList.add('ui-hidden'); }
+            shakaControls.classList.add('ui-hidden');
+            telegramLink.classList.add('ui-hidden');
+            coolPlayOverlay.classList.add('ui-hidden');
+            serverPopup.style.display = 'none';
+            qualityPopup.style.display = 'none';
+        }
 
-            function renderServerPopup() { 
-                serverListWrapper.innerHTML = ''; 
-                serverList.forEach((srv, idx) => { 
-                    const btn = document.createElement('button'); 
-                    btn.className = 'server-item-btn'; 
-                    btn.innerText = srv.name; 
-                    if(idx === currentServerIndex) btn.classList.add('active'); 
-                    btn.addEventListener('click', (e) => { 
-                        e.stopPropagation(); 
-                        serverPopup.style.display = 'none'; 
-                        if(idx !== currentServerIndex) { loadServer(idx); } 
-                        resetMasterTimer(); 
-                    }); 
-                    serverListWrapper.appendChild(btn); 
-                }); 
-            } 
+        function resetMasterTimer() {
+            if (isLocked) return;
+            clearTimeout(uiMasterTimer);
+            if (!video.paused) { uiMasterTimer = setTimeout(hideAllControls, 4000); }
+        }
 
-            await loadServer(0); 
-            serverMenuBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); qualityPopup.style.display = 'none'; serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex'; resetMasterTimer(); }); 
-            qualityMenuBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); serverPopup.style.display = 'none'; qualityPopup.style.display = (qualityPopup.style.display === 'flex') ? 'none' : 'flex'; resetMasterTimer(); }); 
-            lockBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); if (!isPlayerFullscreen) return; isLocked = !isLocked; if(isLocked) { container.classList.add('player-locked'); lockIcon.innerText = 'lock'; serverPopup.style.display = 'none'; qualityPopup.style.display = 'none'; hideAllControls(); clearTimeout(uiMasterTimer); } else { container.classList.remove('player-locked'); lockIcon.innerText = 'lock_open'; lockBtn.classList.remove('touch-active'); topLeftPanel.classList.remove('ui-hidden'); showAllControls(); resetMasterTimer(); } }); 
-            customFullscreenBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); if (!document.fullscreenElement) { if (container.requestFullscreen) { container.requestFullscreen(); } else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); } fsIcon.innerText = 'fullscreen_exit'; } else { if (document.exitFullscreen) { document.exitFullscreen(); } fsIcon.innerText = 'fullscreen'; } resetMasterTimer(); }); 
+        container.addEventListener('click', (e) => {
+            if (isLocked) { showAllControls(); return; }
+            if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') {
+                serverPopup.style.display = 'none';
+                qualityPopup.style.display = 'none';
+                resetMasterTimer();
+                return;
+            }
+            if (!controlsVisible) { showAllControls(); resetMasterTimer(); } else { hideAllControls(); clearTimeout(uiMasterTimer); }
+        });
 
-            function checkFullscreenState() { 
-                if (document.fullscreenElement || window.innerHeight == screen.height) { 
-                    isPlayerFullscreen = true; container.classList.add('is-fullscreen'); fsIcon.innerText = 'fullscreen_exit'; resetMasterTimer(); 
-                } else { 
-                    isPlayerFullscreen = false; isLocked = false; container.classList.remove('player-locked'); container.classList.remove('is-fullscreen'); lockIcon.innerText = 'lock_open'; fsIcon.innerText = 'fullscreen'; brightness = 100; document.getElementById('brightnessOverlay').style.opacity = 0; serverPopup.style.display = 'none'; qualityPopup.style.display = 'none'; controlsVisible = true; shakaControls.classList.remove('ui-hidden'); topLeftPanel.classList.remove('ui-hidden'); telegramLink.classList.remove('ui-hidden'); updateCoolPlayBtn(); clearTimeout(uiMasterTimer); 
-                } 
-            } 
+        container.addEventListener('mousemove', () => { if (isLocked) return; if (!controlsVisible) showAllControls(); resetMasterTimer(); });
+        container.addEventListener('touchmove', (e) => { if (isLocked) { e.preventDefault(); return; } if (!controlsVisible) showAllControls(); resetMasterTimer(); });
 
-            document.addEventListener('fullscreenchange', checkFullscreenState); 
-            document.addEventListener('webkitfullscreenchange', checkFullscreenState); 
-            window.addEventListener('resize', checkFullscreenState); 
-            const bOverlay = document.getElementById('brightnessOverlay'); 
-            const gOsd = document.getElementById('gestureOsd'); 
-            const gIcon = document.getElementById('gestureIcon'); 
-            const gValue = document.getElementById('gestureValue'); 
-            let startX, startY, startVol, startBright; let osdTimeout; 
+        autoSwitchToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            autoSwitchEnabled = !autoSwitchEnabled;
+            if(autoSwitchEnabled) {
+                autoSwitchToggle.className = "toggle-btn auto-on";
+                autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync</span> AUTO SWITCH: ON';
+            } else {
+                autoSwitchToggle.className = "toggle-btn auto-off";
+                autoSwitchToggle.innerHTML = '<span class="material-icons" style="font-size:10px;">sync_disabled</span> AUTO SWITCH: OFF';
+                stopFallbackTimer();
+            }
+            resetMasterTimer();
+        });
 
-            function showOSD(icon, value) { gIcon.innerText = icon; gValue.innerText = value; gOsd.style.opacity = '1'; clearTimeout(osdTimeout); osdTimeout = setTimeout(() => { gOsd.style.opacity = '0'; }, 800); } 
+        function updateCoolPlayBtn() {
+            if (video.paused) {
+                coolPlayIcon.innerText = "play_arrow";
+                if (controlsVisible && !isLocked) coolPlayOverlay.classList.remove('ui-hidden');
+                clearTimeout(uiMasterTimer);
+            } else {
+                coolPlayOverlay.classList.add('ui-hidden');
+                resetMasterTimer();
+            }
+        }
 
-            container.addEventListener('touchstart', (e) => { if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return; const touch = e.touches[0]; startX = touch.clientX; startY = touch.clientY; startVol = video.volume; startBright = brightness; resetMasterTimer(); }); 
-            container.addEventListener('touchmove', (e) => { if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return; const touch = e.touches[0]; const deltaY = startY - touch.clientY; const sensitivity = 0.35; const screenWidth = container.clientWidth; if (startX < screenWidth / 2) { let newBright = startBright + (deltaY * sensitivity); newBright = Math.max(10, Math.min(100, newBright)); brightness = newBright; bOverlay.style.opacity = (100 - brightness) / 100 * 0.85; showOSD('brightness_6', Math.round(brightness) + '%'); } else { let newVol = startVol + (deltaY / 350); newVol = Math.max(0, Math.min(1, newVol)); video.volume = newVol; showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%'); } resetMasterTimer(); }); 
-        }); 
-    </script> 
-</body> 
+        coolPlayBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (video.paused) { video.play(); } else { video.pause(); }
+            resetMasterTimer();
+        });
+
+        shakaControls.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
+        topLeftPanel.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
+        serverPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
+        qualityPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
+
+        video.addEventListener('play', updateCoolPlayBtn);
+        video.addEventListener('pause', updateCoolPlayBtn);
+
+        // Core Stream Router Logic (DRM .mpd vs TS/HLS Adaptive)
+        async function loadServer(index) {
+            if (index >= serverList.length) index = 0;
+            currentServerIndex = index;
+            const currentServer = serverList[currentServerIndex];
+            currentServerLabel.innerText = currentServer.name;
+
+            statusText.innerText = `CONNECTING ${currentServer.name}...`;
+            loader.style.opacity = '1';
+            
+            if (autoSwitchEnabled) startFallbackTimer();
+
+            // Destroy existing TS stream instances before loading new ones
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
+
+            const streamUrl = currentServer.url;
+
+            // Engine Decision Rule
+            if (streamUrl.includes('.ts') || streamUrl.includes('.m3u8')) {
+                // Route to TS HLS.js Engine
+                currentQualityLabel.innerText = 'HLS Live';
+                if (Hls.isSupported()) {
+                    hlsInstance = new Hls({ maxBufferSize: 0, maxBufferLength: 10, liveSyncDurationCount: 3 });
+                    hlsInstance.loadSource(streamUrl);
+                    hlsInstance.attachMedia(video);
+                    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().catch(() => {});
+                        generateQualityMenu();
+                    });
+                    hlsInstance.on(Hls.Events.ERROR, function (event, data) {
+                        if (data.fatal && autoSwitchEnabled) handleStreamFailure();
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Safari iOS Native Native Fallback
+                    video.src = streamUrl;
+                }
+            } else {
+                // Route to Shaka Secure DRM Engine (.mpd)
+                try {
+                    player.configure({ drm: { clearKeys: currentServer.clearKeys } });
+                    await player.load(streamUrl);
+                } catch (error) {
+                    if (autoSwitchEnabled) handleStreamFailure();
+                }
+            }
+            renderServerPopup();
+        }
+
+        function startFallbackTimer() {
+            if(!autoSwitchEnabled) return;
+            clearTimeout(fallbackTimer);
+            fallbackTimer = setTimeout(() => { handleStreamFailure(); }, LOAD_TIMEOUT);
+        }
+
+        function stopFallbackTimer() { clearTimeout(fallbackTimer); }
+
+        function handleStreamFailure() {
+            stopFallbackTimer();
+            if (!autoSwitchEnabled) { statusText.innerText = "BUFFERING (AUTO SWITCH OFF)..."; return; }
+            let nextIndex = (currentServerIndex + 1) % serverList.length;
+            statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING TO SERVER ${nextIndex + 1}...</span>`;
+            loader.style.opacity = '1';
+            setTimeout(() => { loadServer(nextIndex); }, 2000);
+        }
+
+        video.addEventListener('playing', () => {
+            loader.style.opacity = '0';
+            stopFallbackTimer();
+            updateCoolPlayBtn();
+            showAllControls();
+            resetMasterTimer();
+        });
+
+        video.addEventListener('waiting', () => {
+            statusText.innerText = "BUFFERING...";
+            loader.style.opacity = '1';
+            if (autoSwitchEnabled) startFallbackTimer();
+            clearTimeout(uiMasterTimer);
+        });
+
+        player.addEventListener('error', (event) => {
+            if (autoSwitchEnabled && !hlsInstance) handleStreamFailure();
+        });
+
+        function renderServerPopup() {
+            serverListWrapper.innerHTML = '';
+            serverList.forEach((srv, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'server-item-btn';
+                btn.innerText = srv.name;
+                if(idx === currentServerIndex) btn.classList.add('active');
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    serverPopup.style.display = 'none';
+                    if(idx !== currentServerIndex) { loadServer(idx); }
+                    resetMasterTimer();
+                });
+                serverListWrapper.appendChild(btn);
+            });
+        }
+
+        await loadServer(0);
+
+        serverMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            qualityPopup.style.display = 'none';
+            serverPopup.style.display = (serverPopup.style.display === 'flex') ? 'none' : 'flex';
+            resetMasterTimer();
+        });
+
+        qualityMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            serverPopup.style.display = 'none';
+            qualityPopup.style.display = (qualityPopup.style.display === 'flex') ? 'none' : 'flex';
+            resetMasterTimer();
+        });
+
+        lockBtn.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            if (!isPlayerFullscreen) return;
+            isLocked = !isLocked;
+            if(isLocked) {
+                container.classList.add('player-locked');
+                lockIcon.innerText = 'lock';
+                serverPopup.style.display = 'none';
+                qualityPopup.style.display = 'none';
+                hideAllControls();
+                clearTimeout(uiMasterTimer);
+            } else {
+                container.classList.remove('player-locked');
+                lockIcon.innerText = 'lock_open';
+                lockBtn.classList.remove('touch-active');
+                topLeftPanel.classList.remove('ui-hidden');
+                showAllControls();
+                resetMasterTimer();
+            }
+        });
+
+        customFullscreenBtn.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) { container.requestFullscreen(); } 
+                else if (container.webkitRequestFullscreen) { container.webkitRequestFullscreen(); }
+                fsIcon.innerText = 'fullscreen_exit';
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                fsIcon.innerText = 'fullscreen';
+            }
+            resetMasterTimer();
+        });
+
+        function checkFullscreenState() {
+            if (document.fullscreenElement || window.innerHeight == screen.height) {
+                isPlayerFullscreen = true;
+                container.classList.add('is-fullscreen');
+                fsIcon.innerText = 'fullscreen_exit';
+                resetMasterTimer();
+            } else {
+                isPlayerFullscreen = false;
+                isLocked = false;
+                container.classList.remove('player-locked');
+                container.classList.remove('is-fullscreen');
+                lockIcon.innerText = 'lock_open';
+                fsIcon.innerText = 'fullscreen';
+                brightness = 100;
+                document.getElementById('brightnessOverlay').style.opacity = 0;
+                serverPopup.style.display = 'none';
+                qualityPopup.style.display = 'none';
+                controlsVisible = true;
+                shakaControls.classList.remove('ui-hidden');
+                topLeftPanel.classList.remove('ui-hidden');
+                telegramLink.classList.remove('ui-hidden');
+                updateCoolPlayBtn();
+                clearTimeout(uiMasterTimer);
+            }
+        }
+
+        document.addEventListener('fullscreenchange', checkFullscreenState);
+        document.addEventListener('webkitfullscreenchange', checkFullscreenState);
+        window.addEventListener('resize', checkFullscreenState);
+
+        const bOverlay = document.getElementById('brightnessOverlay');
+        const gOsd = document.getElementById('gestureOsd');
+        const gIcon = document.getElementById('gestureIcon');
+        const gValue = document.getElementById('gestureValue');
+        let startX, startY, startVol, startBright;
+        let osdTimeout;
+
+        function showOSD(icon, value) {
+            gIcon.innerText = icon;
+            gValue.innerText = value;
+            gOsd.style.opacity = '1';
+            clearTimeout(osdTimeout);
+            osdTimeout = setTimeout(() => { gOsd.style.opacity = '0'; }, 800);
+        }
+
+        container.addEventListener('touchstart', (e) => {
+            if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return;
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            startVol = video.volume;
+            startBright = brightness;
+            resetMasterTimer();
+        });
+
+        container.addEventListener('touchmove', (e) => {
+            if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex') return;
+            const touch = e.touches[0];
+            const deltaY = startY - touch.clientY;
+            const sensitivity = 0.35;
+            const screenWidth = container.clientWidth;
+            if (startX < screenWidth / 2) {
+                let newBright = startBright + (deltaY * sensitivity);
+                newBright = Math.max(10, Math.min(100, newBright));
+                brightness = newBright;
+                bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
+                showOSD('brightness_6', Math.round(brightness) + '%');
+            } else {
+                let newVol = startVol + (deltaY / 350);
+                newVol = Math.max(0, Math.min(1, newVol));
+                video.volume = newVol;
+                showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
+            }
+            resetMasterTimer();
+        });
+    });
+</script>
+</body>
 </html>
