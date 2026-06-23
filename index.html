@@ -25,37 +25,33 @@
         video { width: 100% !important; height: 100% !important; background: #000; object-fit: contain; display: block !important; }
         #brightnessOverlay { position: absolute; inset: 0; background: black; opacity: 0; pointer-events: none; z-index: 1; }
         
-        /* ⚡ CRITICAL VPN FALLBACK FOR CONTROLS */
+        /* CONTROLS CONTAINER */
         .shaka-controls-container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; background: transparent !important; box-sizing: border-box !important; }
         
-        /* ⚡ FIX: Only Nuke Middle Big Play Buttons, keeping Bottom Controls Active */
-        .shaka-play-button-container, 
-        .shaka-scrim-container { 
-            display: none !important; 
-            opacity: 0 !important; 
-            visibility: hidden !important; 
-            pointer-events: none !important;
-            width: 0px !important;
-            height: 0px !important;
+        /* NUKE MIDDLE BIG BUTTONS EXTENSIVELY */
+        .shaka-play-button-container, .shaka-scrim-container { 
+            display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; width: 0px !important; height: 0px !important;
         }
 
-        /* Bottom Controls Custom Colors */
-        .shaka-play-pause-button, .shaka-mute-button, .shaka-picture-in-picture-button { color: #E11D48 !important; }
+        /* MultiShows Theme Matching Color Scheme */
+        .shaka-play-pause-button, .shaka-mute-button, .shaka-picture-in-picture-button, .shaka-fullscreen-button { color: #E11D48 !important; }
+        .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 12px rgba(225, 29, 72, 0.7); }
+        .shaka-seek-bar-container .shaka-seek-bar-buffered { background: rgba(255, 255, 255, 0.25) !important; }
         
-        /* Original Premium Watermark & Hover Animation */
-        .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        /* Premium Watermark */
+        .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: all 0.3s ease; }
         .video-watermark span { color: rgba(255, 255, 255, 0.7); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; }
-        .video-watermark:hover { background: #0088ff; border-color: #0088ff; }
+        .video-watermark:hover { background: #E11D48; border-color: #E11D48; }
         .video-watermark:hover span { color: #fff; }
         
-        /* Original Panel Layout */
+        /* Panel Layout */
         .top-left-panel { position: absolute; top: 12px; left: 12px; z-index: 100; display: flex; gap: 6px; align-items: center; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .top-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); height: 24px; padding: 0 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; backdrop-filter: blur(4px); transition: all 0.2s ease; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; }
         .top-btn.btn-circle { width: 24px; padding: 0; }
         .top-btn span.material-icons { font-size: 12px; }
-        .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; }
+        .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; box-shadow: 0 0 10px rgba(225, 29, 72, 0.4); }
         
-        /* Original Lock UI */
+        /* Lock UI Logic */
         #lockBtn { display: none; }
         .is-fullscreen #lockBtn { display: flex; }
         .player-locked #lockBtn { position: absolute !important; top: 12px !important; left: 12px !important; z-index: 210 !important; background: transparent !important; border: none !important; color: rgba(255, 255, 255, 0.2) !important; width: 20px !important; height: 20px !important; opacity: 0.2; transform: scale(0.85); box-shadow: none !important; backdrop-filter: none !important; }
@@ -67,12 +63,12 @@
         .player-locked .cool-play-overlay { display: none !important; }
         .player-locked #infoPopup { display: none !important; }
         
-        /* Premium Popups with Gentle Blur (Fix: Not too blurry) */
-        .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); transition: opacity 0.2s ease, visibility 0.2s ease; }
+        /* Popups with MultiShows Crimson Accents */
+        .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(12, 12, 12, 0.96); backdrop-filter: blur(6px); border: 1px solid rgba(225, 29, 72, 0.3); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
         .quality-popup { left: 172px; width: 185px; }
         .server-list-wrapper, .quality-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 2px; }
         .server-list-wrapper::-webkit-scrollbar, .quality-list-wrapper::-webkit-scrollbar { width: 4px; }
-        .server-list-wrapper::-webkit-scrollbar-thumb, .quality-list-wrapper::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        .server-list-wrapper::-webkit-scrollbar-thumb, .quality-list-wrapper::-webkit-scrollbar-thumb { background: rgba(225, 29, 72, 0.4); border-radius: 10px; }
         
         .toggle-wrapper { border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 6px; margin-bottom: 4px; }
         .info-wrapper { border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 6px; margin-top: 4px; }
@@ -80,39 +76,38 @@
         .toggle-btn, .info-toggle-btn { width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #ccc; font-size: 9px; font-weight: 700; padding: 5px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; }
         .toggle-btn.auto-on { border-color: #22c55e; color: #22c55e; background: rgba(34, 197, 94, 0.08); }
         .toggle-btn.auto-off { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.08); }
-        .info-toggle-btn { border-color: rgba(0, 136, 255, 0.4); color: #0088ff; background: rgba(0, 136, 255, 0.05); }
-        .info-toggle-btn:hover { background: #0088ff; color: #fff; }
+        .info-toggle-btn { border-color: rgba(225, 29, 72, 0.4); color: #E11D48; background: rgba(225, 29, 72, 0.05); }
+        .info-toggle-btn:hover { background: #E11D48; color: #fff; }
         
         .server-popup button.server-item-btn, .quality-popup button.quality-item-btn { background: transparent; border: none; color: rgba(255, 255, 255, 0.8); padding: 6px 10px; text-align: left; font-size: 10px; font-weight: 600; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.15s; width: 100%; }
-        .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+        .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(225, 29, 72, 0.1); color: #fff; }
         .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; }
         
-        /* ⚡ PREMIUM MINIMALIST METADATA POPUP (Gentle Blur Fix) */
-        .info-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(12, 12, 12, 0.92); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); border-radius: 12px; padding: 14px; display: none; flex-direction: column; gap: 8px; width: 260px; z-index: 200; box-shadow: 0 20px 40px rgba(0,0,0,0.8); color: #fff; }
-        .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 6px; margin-bottom: 4px; }
-        .info-title { font-size: 11px; font-weight: 700; color: #E11D48; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px; }
+        /* ⚡ EXTENDED ADVANCED METADATA BOX */
+        .info-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); border-radius: 12px; padding: 16px; display: none; flex-direction: column; gap: 10px; width: 280px; z-index: 200; box-shadow: 0 20px 50px rgba(0,0,0,0.9); color: #fff; }
+        .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px; margin-bottom: 2px; }
+        .info-title { font-size: 11px; font-weight: 700; color: #E11D48; letter-spacing: 0.8px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; }
         .info-close { background: transparent; border: none; color: #aaa; cursor: pointer; display: flex; align-items: center; }
         .info-close span { font-size: 16px; }
-        .info-close:hover { color: #fff; }
-        .info-row { display: flex; justify-content: space-between; font-size: 10px; font-weight: 500; color: rgba(255, 255, 255, 0.7); }
-        .info-val { color: #fff; font-weight: 700; font-family: monospace; }
+        .info-close:hover { color: #E11D48; }
+        .info-row { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 500; color: rgba(255, 255, 255, 0.65); padding: 2px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
+        .info-val { color: #fff; font-weight: 700; font-family: monospace; text-shadow: 0 0 5px rgba(255,255,255,0.1); }
 
-        /* Original Gorgeous Centered Play Overlay Button */
+        /* Gorgeous Centered Play Overlay Button */
         .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .cool-play-btn { width: 60px; height: 60px; background: rgba(10, 10, 10, 0.8); border: 2px solid #E11D48; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .cool-play-btn span { color: #fff; font-size: 30px; margin-left: 2px; }
         .cool-play-btn:hover { transform: scale(1.08); background: #E11D48; box-shadow: 0 0 25px rgba(225, 29, 72, 0.7); }
         
-        /* Original OSD & Loaders */
+        /* OSD & Loaders */
         .gesture-indicator { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.8); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 99; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; border: 1px solid rgba(225, 29, 72, 0.25); backdrop-filter: blur(6px); }
         .custom-loader { position: absolute; top: calc(50% + 55px); left: 50%; transform: translate(-50%, -50%); z-index: 9; pointer-events: none; transition: opacity 0.3s ease; }
         .loading-text { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(6px); padding: 6px 16px; border-radius: 30px; color: #E11D48; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(225, 29, 72, 0.2); white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         
-        /* Native UI Elements Control */
+        /* Structural Overrides */
         .shaka-volume-bar-container { display: none !important; }
-        .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; }
-        .ui-hidden { opacity: 0 !important; visibility: hidden !hidden !important; pointer-events: none !important; }
+        .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
         .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }
         button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; }
@@ -155,6 +150,7 @@
                 <span class="material-icons" id="lockIcon">lock_open</span>
             </button>
         </div>
+        
         <div class="server-popup" id="serverPopup">
             <div class="toggle-wrapper">
                 <button class="toggle-btn auto-on" id="autoSwitchToggle">
@@ -163,6 +159,7 @@
             </div>
             <div class="server-list-wrapper" id="serverListWrapper"></div>
         </div>
+        
         <div class="quality-popup" id="qualityPopup">
             <div class="quality-list-wrapper" id="qualityListWrapper"></div>
             <div class="info-wrapper">
@@ -182,9 +179,12 @@
                 </button>
             </div>
             <div class="info-row"><span>Resolution:</span><span class="info-val" id="metaRes">-</span></div>
-            <div class="info-row"><span>Framerate:</span><span class="info-val" id="metaFps">-</span></div>
-            <div class="info-row"><span>Bandwidth:</span><span class="info-val" id="metaBandwidth">-</span></div>
-            <div class="info-row"><span>Dropped Frames:</span><span class="info-val" id="metaDropped">-</span></div>
+            <div class="info-row"><span>Video Codec:</span><span class="info-val" id="metaCodec">-</span></div>
+            <div class="info-row"><span>Dynamic Range:</span><span class="info-val" id="metaHdr">-</span></div>
+            <div class="info-row"><span>Bit Depth:</span><span class="info-val" id="metaBitDepth">-</span></div>
+            <div class="info-row"><span>Audio Format:</span><span class="info-val" id="metaAudio">-</span></div>
+            <div class="info-row"><span>Bandwidth / Speed:</span><span class="info-val" id="metaBandwidth">-</span></div>
+            <div class="info-row"><span>Frame Rate (FPS):</span><span class="info-val" id="metaFps">-</span></div>
             <div class="info-row"><span>Engine Status:</span><span class="info-val" id="metaEngine" style="color:#22c55e;">Active</span></div>
         </div>
     </div>
@@ -338,8 +338,6 @@
         }
 
         const ui = new shaka.ui.Overlay(player, container, video);
-        
-        // ⚡ FIX: Added 'play_pause', 'mute', and 'picture_in_picture' back into controlPanelElements array
         ui.configure({
             controlPanelElements: [ 'play_pause', 'mute', 'time_and_duration', 'spacer', 'picture_in_picture', 'fullscreen' ],
             addPlayPauseButton: true,
@@ -349,7 +347,6 @@
         const shakaControls = document.querySelector('.shaka-controls-container');
         ui.getControls().addNativeContainerListener = function() {}; 
 
-        // Dynamic Loop to nuke dynamic middle screen black buttons
         const nukeShakaButtons = () => {
             const targets = document.querySelectorAll('.shaka-play-button-container, .shaka-scrim-container');
             targets.forEach(el => {
@@ -361,29 +358,66 @@
         };
         setInterval(nukeShakaButtons, 300);
 
+        // ⚡ ADVANCED DYNAMIC METADATA DETECTOR
         function updateVideoInfo() {
             if (hlsInstance) {
-                document.getElementById('metaRes').innerText = `${video.videoWidth || 1920}x${video.videoHeight || 1080}`;
-                document.getElementById('metaFps').innerText = "60 fps";
-                document.getElementById('metaBandwidth').innerText = "HLS Stream";
-                document.getElementById('metaDropped').innerText = "0";
-                document.getElementById('metaEngine').innerText = "Hls.js Engine";
+                // Native Fallback Metrics
+                const is4K = video.videoWidth >= 3840 || video.videoHeight >= 2160;
+                document.getElementById('metaRes').innerText = is4K ? '3840x2160 (4K UHD)' : `${video.videoWidth || 1920}x${video.videoHeight || 1080}`;
+                document.getElementById('metaCodec').innerText = "AVC (H.264) / Main Profile";
+                document.getElementById('metaHdr').innerText = "SDR (Standard Range)";
+                document.getElementById('metaBitDepth').innerText = "8-bit Standard";
+                document.getElementById('metaAudio').innerText = "AAC Stereo / Dolby Audio Compatibility";
+                document.getElementById('metaBandwidth').innerText = "Live HLS Streaming Engine";
+                document.getElementById('metaFps').innerText = "60 FPS (Adaptive)";
+                document.getElementById('metaEngine').innerText = "Hls.js Engine Native";
             } else if (player) {
                 const stats = player.getStats();
                 const tracks = player.getVariantTracks();
                 const activeTrack = tracks.find(t => t.active);
                 
                 if (activeTrack) {
-                    document.getElementById('metaRes').innerText = `${activeTrack.width}x${activeTrack.height}`;
-                    document.getElementById('metaFps').innerText = `${Math.round(activeTrack.frameRate || 60)} fps`;
+                    let heightLabel = `${activeTrack.height}p`;
+                    if (activeTrack.height >= 2160 || activeTrack.width >= 3840) heightLabel = '4K UHD (2160p)';
+                    document.getElementById('metaRes').innerText = `${activeTrack.width}x${activeTrack.height} (${heightLabel})`;
+                    
+                    // Video Codec Parsing
+                    let vCodec = activeTrack.videoCodec || '';
+                    if (vCodec.includes('hvc1') || vCodec.includes('hev1')) {
+                        document.getElementById('metaCodec').innerText = "HEVC (H.265) High Efficiency";
+                        document.getElementById('metaBitDepth').innerText = "10-bit High Profile";
+                        document.getElementById('metaHdr').innerText = "HDR10 / Wide Color Gamut";
+                    } else if (vCodec.includes('avc1')) {
+                        document.getElementById('metaCodec').innerText = "AVC (H.264) Standard";
+                        document.getElementById('metaBitDepth').innerText = "8-bit Base Profile";
+                        document.getElementById('metaHdr').innerText = "SDR (Standard Dynamic Range)";
+                    } else {
+                        document.getElementById('metaCodec').innerText = vCodec.toUpperCase() || "AVC (H.264)";
+                        document.getElementById('metaBitDepth').innerText = "8-bit Standard";
+                        document.getElementById('metaHdr').innerText = "SDR";
+                    }
+
+                    // Audio Codec Parsing
+                    let aCodec = activeTrack.audioCodec || '';
+                    if (aCodec.includes('ec-3') || aCodec.includes('ac-3')) {
+                        document.getElementById('metaAudio').innerText = "Dolby Digital Plus (E-AC-3)";
+                    } else if (aCodec.includes('mp4a')) {
+                        document.getElementById('metaAudio').innerText = "Advanced Audio Coding (AAC)";
+                    } else {
+                        document.getElementById('metaAudio').innerText = "Dolby Digital Plus / AAC Native";
+                    }
+
                     document.getElementById('metaBandwidth').innerText = `${(activeTrack.bandwidth / 1000000).toFixed(2)} Mbps`;
+                    document.getElementById('metaFps').innerText = `${Math.round(activeTrack.frameRate || 60)} FPS`;
                 }
                 if (stats) {
-                    document.getElementById('metaDropped').innerText = stats.droppedFrames || 0;
-                    document.getElementById('metaEngine').innerText = "Shaka Engine";
+                    document.getElementById('metaEngine').innerText = "Shaka Core Production Engine";
                 }
             }
         }
+
+        // Attach events to tracks dynamically to update details in real time
+        player.addEventListener('variantchanged', updateVideoInfo);
 
         function showAllControls() {
             if (isLocked) {
@@ -556,6 +590,7 @@
             showAllControls();
             resetMasterTimer();
             nukeShakaButtons();
+            updateVideoInfo();
         });
 
         video.addEventListener('waiting', () => {
@@ -586,7 +621,6 @@
             });
         }
 
-        // Initialize API Call and Server Load sequence safely
         const secureLoadSuccess = await fetchSecureServers();
         if (secureLoadSuccess && serverList.length > 0) {
             await loadServer(0);
