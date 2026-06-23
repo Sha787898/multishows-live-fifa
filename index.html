@@ -28,7 +28,7 @@
         /* ⚡ CRITICAL VPN FALLBACK FOR CONTROLS */
         .shaka-controls-container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; background: transparent !important; box-sizing: border-box !important; }
         
-        /* ⚡ FIX: Only Nuke Middle Big Play Buttons, keeping Bottom Play/Pause active */
+        /* ⚡ FIX: Only Nuke Middle Big Play Buttons, keeping Bottom Controls Active */
         .shaka-play-button-container, 
         .shaka-scrim-container { 
             display: none !important; 
@@ -39,8 +39,8 @@
             height: 0px !important;
         }
 
-        /* Customize Bottom Native Play/Pause Color */
-        .shaka-play-pause-button { color: #E11D48 !important; }
+        /* Bottom Controls Custom Colors */
+        .shaka-play-pause-button, .shaka-mute-button, .shaka-picture-in-picture-button { color: #E11D48 !important; }
         
         /* Original Premium Watermark & Hover Animation */
         .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: opacity 0.3s ease, visibility 0.3s ease; }
@@ -67,8 +67,8 @@
         .player-locked .cool-play-overlay { display: none !important; }
         .player-locked #infoPopup { display: none !important; }
         
-        /* Original Premium Popups with Controlled Blur */
-        .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); transition: opacity 0.2s ease, visibility 0.2s ease; }
+        /* Premium Popups with Gentle Blur (Fix: Not too blurry) */
+        .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); transition: opacity 0.2s ease, visibility 0.2s ease; }
         .quality-popup { left: 172px; width: 185px; }
         .server-list-wrapper, .quality-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 2px; }
         .server-list-wrapper::-webkit-scrollbar, .quality-list-wrapper::-webkit-scrollbar { width: 4px; }
@@ -87,9 +87,9 @@
         .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
         .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; }
         
-        /* ⚡ ADVANCED GLASS-MORPHISM VIDEO INFO POPUP */
-        .info-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.88); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(6px); border-radius: 12px; padding: 14px; display: none; flex-direction: column; gap: 8px; width: 260px; z-index: 200; box-shadow: 0 20px 40px rgba(0,0,0,0.8); color: #fff; }
-        .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 6px; margin-bottom: 4px; }
+        /* ⚡ PREMIUM MINIMALIST METADATA POPUP (Gentle Blur Fix) */
+        .info-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(12, 12, 12, 0.92); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); border-radius: 12px; padding: 14px; display: none; flex-direction: column; gap: 8px; width: 260px; z-index: 200; box-shadow: 0 20px 40px rgba(0,0,0,0.8); color: #fff; }
+        .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 6px; margin-bottom: 4px; }
         .info-title { font-size: 11px; font-weight: 700; color: #E11D48; letter-spacing: 0.5px; display: flex; align-items: center; gap: 4px; }
         .info-close { background: transparent; border: none; color: #aaa; cursor: pointer; display: flex; align-items: center; }
         .info-close span { font-size: 16px; }
@@ -112,7 +112,7 @@
         .shaka-volume-bar-container { display: none !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; }
-        .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+        .ui-hidden { opacity: 0 !important; visibility: hidden !hidden !important; pointer-events: none !important; }
         .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }
         button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; }
@@ -250,13 +250,9 @@
         const coolPlayBtn = document.getElementById('coolPlayBtn');
         const coolPlayIcon = document.getElementById('coolPlayIcon');
         
-        // Metadata elements
         const infoToggleBtn = document.getElementById('infoToggleBtn');
         const infoPopup = document.getElementById('infoPopup');
         const infoCloseBtn = document.getElementById('infoCloseBtn');
-
-        const secureLoadSuccess = await fetchSecureServers();
-        if (!secureLoadSuccess || serverList.length === 0) return;
 
         player = new shaka.Player(video);
         player.configure({
@@ -343,9 +339,9 @@
 
         const ui = new shaka.ui.Overlay(player, container, video);
         
-        // ⚡ FIX: Added 'play_pause' back into controlPanelElements array
+        // ⚡ FIX: Added 'play_pause', 'mute', and 'picture_in_picture' back into controlPanelElements array
         ui.configure({
-            controlPanelElements: [ 'play_pause', 'time_and_duration', 'spacer', 'fullscreen' ],
+            controlPanelElements: [ 'play_pause', 'mute', 'time_and_duration', 'spacer', 'picture_in_picture', 'fullscreen' ],
             addPlayPauseButton: true,
             seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
         });
@@ -353,7 +349,7 @@
         const shakaControls = document.querySelector('.shaka-controls-container');
         ui.getControls().addNativeContainerListener = function() {}; 
 
-        // Dynamic Native Buttons Clean-loop (Keeping Bottom elements intact)
+        // Dynamic Loop to nuke dynamic middle screen black buttons
         const nukeShakaButtons = () => {
             const targets = document.querySelectorAll('.shaka-play-button-container, .shaka-scrim-container');
             targets.forEach(el => {
@@ -363,13 +359,11 @@
                 el.remove(); 
             });
         };
-        
         setInterval(nukeShakaButtons, 300);
 
-        // ⚡ Update Stream Metadata Pop-up values dynamically
         function updateVideoInfo() {
             if (hlsInstance) {
-                document.getElementById('metaRes').innerText = `${video.videoWidth}x${video.videoHeight}`;
+                document.getElementById('metaRes').innerText = `${video.videoWidth || 1920}x${video.videoHeight || 1080}`;
                 document.getElementById('metaFps').innerText = "60 fps";
                 document.getElementById('metaBandwidth').innerText = "HLS Stream";
                 document.getElementById('metaDropped').innerText = "0";
@@ -452,13 +446,12 @@
             resetMasterTimer();
         });
 
-        // Metadata Toggle Logic
         infoToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             qualityPopup.style.display = 'none';
             updateVideoInfo();
             infoPopup.style.display = 'flex';
-            clearTimeout(uiMasterTimer); // Keep open while looking at data
+            clearTimeout(uiMasterTimer);
         });
 
         infoCloseBtn.addEventListener('click', (e) => {
@@ -494,6 +487,7 @@
         video.addEventListener('pause', updateCoolPlayBtn);
 
         async function loadServer(index) {
+            if (!serverList || serverList.length === 0) return;
             if (index >= serverList.length) index = 0;
             currentServerIndex = index;
             const currentServer = serverList[currentServerIndex];
@@ -592,7 +586,11 @@
             });
         }
 
-        await loadServer(0);
+        // Initialize API Call and Server Load sequence safely
+        const secureLoadSuccess = await fetchSecureServers();
+        if (secureLoadSuccess && serverList.length > 0) {
+            await loadServer(0);
+        }
 
         serverMenuBtn.addEventListener('click', (e) => {
             e.preventDefault(); e.stopPropagation();
