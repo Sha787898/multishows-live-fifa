@@ -20,46 +20,47 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         html, body { background: #000; height: 100%; width: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
         
-        /* Player Container Layout */
+        /* Strict Player Container Setup */
         .shaka-video-container { position: relative; width: 100% !important; height: 100vh !important; touch-action: none; overflow: hidden !important; display: block !important; }
         video { width: 100% !important; height: 100% !important; background: #000; object-fit: contain; display: block !important; }
         #brightnessOverlay { position: absolute; inset: 0; background: black; opacity: 0; pointer-events: none; z-index: 1; }
         
-        /* Shaka Controls Main Container Overlay */
+        /* ⚡ CRITICAL VPN FALLBACK FOR CONTROLS */
         .shaka-controls-container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; background: transparent !important; box-sizing: border-box !important; }
         
-        /* ⚡ FIX: Nuke Shaka Native Middle Play Buttons & Duplicated Bars Properly */
+        /* ⚡ EXTREME CSS NUKE FOR SHAKA BUTTONS */
         .shaka-play-button-container, 
-        .shaka-scrim-container { 
+        .shaka-play-button, 
+        .shaka-controls-container .shaka-play-button-container,
+        .shaka-video-container[data-shaka-player-container] .shaka-play-button,
+        .shaka-scrim-container,
+        [class*="shaka-play-button"] { 
             display: none !important; 
             opacity: 0 !important; 
             visibility: hidden !important; 
             pointer-events: none !important;
-        }
-
-        /* Standardize Bottom Bar Controls Alignment to avoid Double Layer */
-        .shaka-bottom-controls {
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: center !important;
-            padding: 0 10px !important;
-            bottom: 8px !important;
+            position: absolute !important;
+            width: 0px !important;
+            height: 0px !important;
+            max-width: 0px !important;
+            max-height: 0px !important;
+            overflow: hidden !important;
         }
         
-        /* Premium Watermark & Hover Animation */
+        /* Original Premium Watermark & Hover Animation */
         .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .video-watermark span { color: rgba(255, 255, 255, 0.7); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; }
         .video-watermark:hover { background: #0088ff; border-color: #0088ff; }
         .video-watermark:hover span { color: #fff; }
         
-        /* Top Navigation Button Controls */
+        /* Original Panel Layout */
         .top-left-panel { position: absolute; top: 12px; left: 12px; z-index: 100; display: flex; gap: 6px; align-items: center; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .top-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); height: 24px; padding: 0 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; backdrop-filter: blur(4px); transition: all 0.2s ease; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; }
         .top-btn.btn-circle { width: 24px; padding: 0; }
         .top-btn span.material-icons { font-size: 12px; }
         .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; }
         
-        /* Premium Screen Lock UI Styles */
+        /* Original Lock UI */
         #lockBtn { display: none; }
         .is-fullscreen #lockBtn { display: flex; }
         .player-locked #lockBtn { position: absolute !important; top: 12px !important; left: 12px !important; z-index: 210 !important; background: transparent !important; border: none !important; color: rgba(255, 255, 255, 0.2) !important; width: 20px !important; height: 20px !important; opacity: 0.2; transform: scale(0.85); box-shadow: none !important; backdrop-filter: none !important; }
@@ -70,7 +71,7 @@
         .player-locked .video-watermark { display: none !important; }
         .player-locked .cool-play-overlay { display: none !important; }
         
-        /* Core Engine Dropdowns Menu Styles */
+        /* Original Premium Popups */
         .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(15, 15, 15, 0.96); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); transition: opacity 0.2s ease, visibility 0.2s ease; }
         .quality-popup { left: 172px; width: 175px; }
         .server-list-wrapper, .quality-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 2px; }
@@ -84,25 +85,24 @@
         .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
         .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; }
         
-        /* Custom UI Centered Large Play Button */
+        /* Original Gorgeous Centered Play Overlay Button */
         .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .cool-play-btn { width: 60px; height: 60px; background: rgba(10, 10, 10, 0.8); border: 2px solid #E11D48; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .cool-play-btn span { color: #fff; font-size: 30px; margin-left: 2px; }
         .cool-play-btn:hover { transform: scale(1.08); background: #E11D48; box-shadow: 0 0 25px rgba(225, 29, 72, 0.7); }
         
-        /* OSD Gestures & Native Control Adjustments */
+        /* Original OSD & Loaders */
         .gesture-indicator { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.8); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 99; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; border: 1px solid rgba(225, 29, 72, 0.25); backdrop-filter: blur(6px); }
         .custom-loader { position: absolute; top: calc(50% + 55px); left: 50%; transform: translate(-50%, -50%); z-index: 9; pointer-events: none; transition: opacity 0.3s ease; }
         .loading-text { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(6px); padding: 6px 16px; border-radius: 30px; color: #E11D48; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(225, 29, 72, 0.2); white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         
+        /* Native UI Elements Control */
         .shaka-volume-bar-container { display: none !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
-        
+        .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; }
         .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
         .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }
-        
-        /* Keep Overflow Option Panel Icons Active inside Single Layout */
         button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; }
         .shaka-overflow-menu { display: none !important; }
     </style>
@@ -126,7 +126,6 @@
             <div id="statusText" class="loading-text">LOADING MULTISHOWS...</div>
         </div>
         <video autoplay playsinline id="video" class="shaka-video" poster="https://w0.peakpx.com/wallpaper/183/933/HD-wallpaper-fifa-world-cup-26-u-sports-soccer-mexico-canada-football-fifa-world-cup-world-cup-2026-we-are-26-sport-event-international-competition-global-event-tournament.jpg"></video>
-        
         <div class="top-left-panel" id="topLeftPanel">
             <button class="top-btn" id="serverMenuBtn" title="Change Server">
                 <span class="material-icons">dns</span>
@@ -305,15 +304,28 @@
 
         const ui = new shaka.ui.Overlay(player, container, video);
         
-        // Config control panel elements carefully to prevent dual layout spawning
+        // ⚡ CRITICAL UI CONFIG: Force play_pause to FALSE to prevent Native Shaka button instantiation
         ui.configure({
-            controlPanelElements: [ 'play_pause', 'time_and_duration', 'spacer', 'fullscreen', 'overflow_menu' ],
+            controlPanelElements: [ 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' ],
             addPlayPauseButton: false,
-            addBigPlayButton: false,
             seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
         });
 
         const shakaControls = document.querySelector('.shaka-controls-container');
+        ui.getControls().addNativeContainerListener = function() {}; 
+
+        // ⚡ HARD HARD JS NUKE: Watch the DOM and delete any dynamic native buttons injected during VPN lagging
+        const nukeShakaButtons = () => {
+            const targets = document.querySelectorAll('.shaka-play-button-container, .shaka-play-button, .shaka-scrim-container');
+            targets.forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+                el.style.setProperty('width', '0px', 'important');
+                el.style.setProperty('height', '0px', 'important');
+                el.remove(); 
+            });
+        };
+        
+        setInterval(nukeShakaButtons, 300); // Strict DOM cleaning loop
 
         function showAllControls() {
             if (isLocked) {
@@ -467,6 +479,7 @@
             updateCoolPlayBtn();
             showAllControls();
             resetMasterTimer();
+            nukeShakaButtons();
         });
 
         video.addEventListener('waiting', () => {
@@ -571,6 +584,7 @@
                 updateCoolPlayBtn();
                 clearTimeout(uiMasterTimer);
             }
+            nukeShakaButtons();
         }
 
         document.addEventListener('fullscreenchange', checkFullscreenState);
