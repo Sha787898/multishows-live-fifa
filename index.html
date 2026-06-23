@@ -83,7 +83,7 @@
         .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(225, 29, 72, 0.1); color: #fff; }
         .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; }
         
-        /* EXTENDED ADVANCED METADATA BOX */
+        /* ⚡ EXTENDED ADVANCED METADATA BOX */
         .info-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); border-radius: 12px; padding: 16px; display: none; flex-direction: column; gap: 10px; width: 280px; z-index: 200; box-shadow: 0 20px 50px rgba(0,0,0,0.9); color: #fff; }
         .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px; margin-bottom: 2px; }
         .info-title { font-size: 11px; font-weight: 700; color: #E11D48; letter-spacing: 0.8px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; }
@@ -200,20 +200,14 @@
     let fallbackTimer = null;
     let uiMasterTimer = null;
     let stealthResetTimer = null;
-    let continuousFailCount = 0; // Infinite loop prevention counter
     const LOAD_TIMEOUT = 15000;
 
     let hlsInstance = null; 
     let player = null; 
 
-    // FIXED: Anti-Cache Buster + Cloudflare Sync Fetching
     async function fetchSecureServers() {
         try {
-            const cacheBuster = `&nocache=${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-            const response = await fetch('https://solitary-meadow-ecemultishows-api.shabidalhasan.workers.dev/?t=' + new Date().getTime() + cacheBuster, { 
-                method: 'GET',
-                headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-            });
+            const response = await fetch('https://solitary-meadow-ecemultishows-api.shabidalhasan.workers.dev/?t=' + new Date().getTime(), { method: 'GET' });
             if (!response.ok) throw new Error('Security Handshake Failed');
             const rawData = await response.json();
             if(rawData && rawData.match_1 && rawData.match_1.servers) {
@@ -224,7 +218,7 @@
             }
         } catch (error) {
             console.error("Security Fetch Error:", error);
-            document.getElementById('statusText').innerText = "STREAM SYNCING WITH CLOUDFLARE...";
+            document.getElementById('statusText').innerText = "SECURITY ERROR: KEY PROTECTED.";
             return false;
         }
     }
@@ -364,9 +358,10 @@
         };
         setInterval(nukeShakaButtons, 300);
 
-        // ADVANCED DYNAMIC METADATA DETECTOR
+        // ⚡ ADVANCED DYNAMIC METADATA DETECTOR
         function updateVideoInfo() {
             if (hlsInstance) {
+                // Native Fallback Metrics
                 const is4K = video.videoWidth >= 3840 || video.videoHeight >= 2160;
                 document.getElementById('metaRes').innerText = is4K ? '3840x2160 (4K UHD)' : `${video.videoWidth || 1920}x${video.videoHeight || 1080}`;
                 document.getElementById('metaCodec').innerText = "AVC (H.264) / Main Profile";
@@ -386,6 +381,7 @@
                     if (activeTrack.height >= 2160 || activeTrack.width >= 3840) heightLabel = '4K UHD (2160p)';
                     document.getElementById('metaRes').innerText = `${activeTrack.width}x${activeTrack.height} (${heightLabel})`;
                     
+                    // Video Codec Parsing
                     let vCodec = activeTrack.videoCodec || '';
                     if (vCodec.includes('hvc1') || vCodec.includes('hev1')) {
                         document.getElementById('metaCodec').innerText = "HEVC (H.265) High Efficiency";
@@ -401,6 +397,7 @@
                         document.getElementById('metaHdr').innerText = "SDR";
                     }
 
+                    // Audio Codec Parsing
                     let aCodec = activeTrack.audioCodec || '';
                     if (aCodec.includes('ec-3') || aCodec.includes('ac-3')) {
                         document.getElementById('metaAudio').innerText = "Dolby Digital Plus (E-AC-3)";
@@ -419,6 +416,7 @@
             }
         }
 
+        // Attach events to tracks dynamically to update details in real time
         player.addEventListener('variantchanged', updateVideoInfo);
 
         function showAllControls() {
@@ -576,27 +574,16 @@
 
         function stopFallbackTimer() { clearTimeout(fallbackTimer); }
 
-        // FIXED: Infinite Loading Loop Protection
         function handleStreamFailure() {
             stopFallbackTimer();
             if (!autoSwitchEnabled) { statusText.innerText = "BUFFERING (AUTO SWITCH OFF)..."; return; }
-            
-            if (continuousFailCount >= serverList.length) {
-                statusText.innerHTML = "<span style='color:#E11D48;'>CLOUDFLARE SYNCING... PLEASE REFRESH IN 1 MINUTE</span>";
-                loader.style.opacity = '1';
-                continuousFailCount = 0;
-                return;
-            }
-            
-            continuousFailCount++;
             let nextIndex = (currentServerIndex + 1) % serverList.length;
             statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING TO SERVER ${nextIndex + 1}...</span>`;
             loader.style.opacity = '1';
-            setTimeout(() => { loadServer(nextIndex); }, 2500);
+            setTimeout(() => { loadServer(nextIndex); }, 2000);
         }
 
         video.addEventListener('playing', () => {
-            continuousFailCount = 0; // Reset loop indicator on success
             loader.style.opacity = '0';
             stopFallbackTimer();
             updateCoolPlayBtn();
