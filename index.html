@@ -28,13 +28,15 @@
         /* ⚡ CRITICAL VPN FALLBACK FOR CONTROLS */
         .shaka-controls-container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; background: transparent !important; box-sizing: border-box !important; }
         
-        /* ⚡ EXTREME CSS NUKE FOR SHAKA BUTTONS */
+        /* ⚡ EXTREME CSS NUKE FOR SHAKA BUTTONS & INNER BUGGY LAYERS */
         .shaka-play-button-container, 
         .shaka-play-button, 
         .shaka-controls-container .shaka-play-button-container,
         .shaka-video-container[data-shaka-player-container] .shaka-play-button,
         .shaka-scrim-container,
-        [class*="shaka-play-button"] { 
+        [class*="shaka-play-button"],
+        .shaka-hidden-layer,
+        div[class*="shaka-controls-button-panel"] button:not(.shaka-fullscreen-button):not(.shaka-overflow-menu-button) { 
             display: none !important; 
             opacity: 0 !important; 
             visibility: hidden !important; 
@@ -96,10 +98,15 @@
         .custom-loader { position: absolute; top: calc(50% + 55px); left: 50%; transform: translate(-50%, -50%); z-index: 9; pointer-events: none; transition: opacity 0.3s ease; }
         .loading-text { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(6px); padding: 6px 16px; border-radius: 30px; color: #E11D48; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(225, 29, 72, 0.2); white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         
-        /* Native UI Elements Control */
+        /* Native UI Elements Control & Double Menu Fix */
         .shaka-volume-bar-container { display: none !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
-        .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; }
+        
+        /* ⚡ FIX: Nuke duplicate bottom controls or side panels from Shaka default stack */
+        .shaka-bottom-controls + .shaka-bottom-controls,
+        .shaka-bottom-controls > .shaka-play-button-container,
+        .shaka-bottom-controls button[class*="shaka-play-button"] { display: none !important; opacity: 0 !important; }
+        
         .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
         .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }
@@ -304,28 +311,34 @@
 
         const ui = new shaka.ui.Overlay(player, container, video);
         
-        // ⚡ CRITICAL UI CONFIG: Force play_pause to FALSE to prevent Native Shaka button instantiation
+        // ⚡ NATIVE CONTROL DISABLER: Block native center button instantiation strictly
         ui.configure({
             controlPanelElements: [ 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' ],
             addPlayPauseButton: false,
+            addBigPlayButton: false,
             seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
         });
 
         const shakaControls = document.querySelector('.shaka-controls-container');
         ui.getControls().addNativeContainerListener = function() {}; 
 
-        // ⚡ HARD HARD JS NUKE: Watch the DOM and delete any dynamic native buttons injected during VPN lagging
+        // ⚡ DEEP DOM CLEANER: Periodic wipeout of rogue shadow roots or native layers
         const nukeShakaButtons = () => {
-            const targets = document.querySelectorAll('.shaka-play-button-container, .shaka-play-button, .shaka-scrim-container');
+            const targets = document.querySelectorAll('.shaka-play-button-container, .shaka-play-button, .shaka-scrim-container, [class*="shaka-hidden-layer"]');
             targets.forEach(el => {
                 el.style.setProperty('display', 'none', 'important');
                 el.style.setProperty('width', '0px', 'important');
                 el.style.setProperty('height', '0px', 'important');
                 el.remove(); 
             });
+            // Removes any dynamic inner panel artifacts added directly inside controls
+            const centerButtonPanel = document.querySelector('.shaka-controls-container > div:not(.shaka-bottom-controls)');
+            if (centerButtonPanel && centerButtonPanel !== topLeftPanel) {
+                centerButtonPanel.style.setProperty('display', 'none', 'important');
+            }
         };
         
-        setInterval(nukeShakaButtons, 300); // Strict DOM cleaning loop
+        setInterval(nukeShakaButtons, 200);
 
         function showAllControls() {
             if (isLocked) {
