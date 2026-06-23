@@ -25,21 +25,25 @@
         video { width: 100% !important; height: 100% !important; background: #000; object-fit: contain; display: block !important; }
         #brightnessOverlay { position: absolute; inset: 0; background: black; opacity: 0; pointer-events: none; z-index: 1; }
         
-        /* ⚡ CRITICAL VPN FALLBACK: If controls.min.css fails to load, force native elements to absolute positioning so they can NEVER push the screen */
+        /* ⚡ CRITICAL VPN FALLBACK FOR CONTROLS */
         .shaka-controls-container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; background: transparent !important; box-sizing: border-box !important; }
         
-        /* ⚡ CRITICAL PLAY BUTTON DESTROYER: Completely vaporize the native Shaka play button from layout calculations */
+        /* ⚡ EXTREME CSS NUKE FOR SHAKA BUTTONS */
         .shaka-play-button-container, 
         .shaka-play-button, 
         .shaka-controls-container .shaka-play-button-container,
-        .shaka-video-container[data-shaka-player-container] .shaka-play-button { 
+        .shaka-video-container[data-shaka-player-container] .shaka-play-button,
+        .shaka-scrim-container,
+        [class*="shaka-play-button"] { 
             display: none !important; 
             opacity: 0 !important; 
             visibility: hidden !important; 
             pointer-events: none !important;
             position: absolute !important;
-            width: 0 !important;
-            height: 0 !important;
+            width: 0px !important;
+            height: 0px !important;
+            max-width: 0px !important;
+            max-height: 0px !important;
             overflow: hidden !important;
         }
         
@@ -299,13 +303,29 @@
         }
 
         const ui = new shaka.ui.Overlay(player, container, video);
+        
+        // ⚡ CRITICAL UI CONFIG: Force play_pause to FALSE to prevent Native Shaka button instantiation
         ui.configure({
-            controlPanelElements: [ 'play_pause', 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' ],
+            controlPanelElements: [ 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' ],
+            addPlayPauseButton: false,
             seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
         });
 
         const shakaControls = document.querySelector('.shaka-controls-container');
         ui.getControls().addNativeContainerListener = function() {}; 
+
+        // ⚡ HARD HARD JS NUKE: Watch the DOM and delete any dynamic native buttons injected during VPN lagging
+        const nukeShakaButtons = () => {
+            const targets = document.querySelectorAll('.shaka-play-button-container, .shaka-play-button, .shaka-scrim-container');
+            targets.forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+                el.style.setProperty('width', '0px', 'important');
+                el.style.setProperty('height', '0px', 'important');
+                el.remove(); 
+            });
+        };
+        
+        setInterval(nukeShakaButtons, 300); // Strict DOM cleaning loop
 
         function showAllControls() {
             if (isLocked) {
@@ -459,6 +479,7 @@
             updateCoolPlayBtn();
             showAllControls();
             resetMasterTimer();
+            nukeShakaButtons();
         });
 
         video.addEventListener('waiting', () => {
@@ -563,6 +584,7 @@
                 updateCoolPlayBtn();
                 clearTimeout(uiMasterTimer);
             }
+            nukeShakaButtons();
         }
 
         document.addEventListener('fullscreenchange', checkFullscreenState);
