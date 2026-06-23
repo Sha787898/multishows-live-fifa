@@ -61,10 +61,16 @@
         .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
         .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; }
         
-        /* ⚡ Strict Fixed Native Shaka Elements Layering */
-        .shaka-play-button-container { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-        .shaka-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-        .shaka-controls-container .shaka-play-button-container { display: none !important; }
+        /* ⚡ FIX: Strict DOM Overwrite to permanently block Native Shaka Play Button */
+        .shaka-play-button-container, 
+        .shaka-play-button, 
+        .shaka-controls-container .shaka-play-button-container,
+        .shaka-video-container[data-shaka-player-container] .shaka-play-button { 
+            display: none !important; 
+            opacity: 0 !important; 
+            visibility: hidden !important; 
+            pointer-events: none !important; 
+        }
         
         /* Original Gorgeous Centered Play Overlay Button */
         .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
@@ -82,7 +88,7 @@
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; }
         .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
-        .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; position: absolute; inset: 0; width: 100%; height: 100%; }
+        .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }
         button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; }
         .shaka-overflow-menu { display: none !important; }
@@ -301,7 +307,7 @@
             }
             controlsVisible = true;
             topLeftPanel.classList.remove('ui-hidden');
-            if (shakaControls) shakaControls.classList.remove('ui-hidden');
+            shakaControls.classList.remove('ui-hidden');
             telegramLink.classList.remove('ui-hidden');
             if (video.paused) { coolPlayOverlay.classList.remove('ui-hidden'); } else { coolPlayOverlay.classList.add('ui-hidden'); }
         }
@@ -310,7 +316,7 @@
             if (video.paused && !isLocked) return;
             controlsVisible = false;
             if (!isLocked) { topLeftPanel.classList.add('ui-hidden'); }
-            if (shakaControls) shakaControls.classList.add('ui-hidden');
+            shakaControls.classList.add('ui-hidden');
             telegramLink.classList.add('ui-hidden');
             coolPlayOverlay.classList.add('ui-hidden');
             serverPopup.style.display = 'none';
@@ -364,11 +370,11 @@
 
         coolPlayBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (video.paused) { video.play().catch(()=>{}); } else { video.pause(); }
+            if (video.paused) { video.play(); } else { video.pause(); }
             resetMasterTimer();
         });
 
-        if (shakaControls) shakaControls.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
+        shakaControls.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
         topLeftPanel.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
         serverPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
         qualityPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
@@ -542,7 +548,7 @@
                 serverPopup.style.display = 'none';
                 qualityPopup.style.display = 'none';
                 controlsVisible = true;
-                if (shakaControls) shakaControls.classList.remove('ui-hidden');
+                shakaControls.classList.remove('ui-hidden');
                 topLeftPanel.classList.remove('ui-hidden');
                 telegramLink.classList.remove('ui-hidden');
                 updateCoolPlayBtn();
