@@ -19,8 +19,8 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         html, body { background: #000; height: 100%; width: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
-        .shaka-video-container { position: relative; width: 100%; height: 100vh; touch-action: none; }
-        video { width: 100%; height: 100%; background: #000; object-fit: contain; }
+        .shaka-video-container { position: relative; width: 100%; height: 100vh; touch-action: none; display: flex !important; align-items: center !important; justify-content: center !important; }
+        video { width: 100% !important; height: 100% !important; background: #000; object-fit: contain !important; max-height: 100vh !important; }
         #brightnessOverlay { position: absolute; inset: 0; background: black; opacity: 0; pointer-events: none; z-index: 1; }
         .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .video-watermark span { color: rgba(255, 255, 255, 0.7); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; }
@@ -34,7 +34,6 @@
         #lockBtn { display: none; }
         .is-fullscreen #lockBtn { display: flex; }
         .player-locked #lockBtn { position: absolute !important; top: 12px !important; left: 12px !important; z-index: 210 !important; background: transparent !important; border: none !important; color: rgba(255, 255, 255, 0.2) !important; width: 20px !important; height: 20px !important; opacity: 0.2; transform: scale(0.85); box-shadow: none !important; backdrop-filter: none !important; }
-        .player-locked #lockBtn span { font-size: 13px !important; color: #fff !important; }
         .player-locked #lockBtn.touch-active { opacity: 0.6; color: rgba(255, 255, 255, 0.8) !important; }
         .player-locked .top-left-panel > button:not(#lockBtn) { display: none !important; }
         .player-locked .shaka-controls-container { display: none !important; pointer-events: none !important; }
@@ -65,7 +64,7 @@
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.6); }
         .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; }
         .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
-        .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; }
+        .shaka-controls-container { transition: opacity 0.3s ease, visibility 0.3s ease !important; width: 100% !important; position: absolute !important; bottom: 0 !important; left: 0 !important; }
         .shaka-spinner-container, .shaka-spinner, .shaka-spinner-svg { display: none !important; }
         button.shaka-overflow-menu-button, button.shaka-fullscreen-button { display: inline-block !important; }
         .shaka-overflow-menu { display: none !important; }
@@ -132,8 +131,9 @@
     let stealthResetTimer = null;
     const LOAD_TIMEOUT = 15000;
 
-    let hlsInstance = null; // Dual Engine Config for TS Streams
-    let player = null; // Shaka instance holder
+    let hlsInstance = null; 
+    let player = null; 
+    let ui = null;
 
     async function fetchSecureServers() {
         try {
@@ -183,7 +183,6 @@
         const secureLoadSuccess = await fetchSecureServers();
         if (!secureLoadSuccess || serverList.length === 0) return;
 
-        // Initialize Native Shaka Base
         player = new shaka.Player(video);
         player.configure({
             streaming: { lowLatencyMode: true, bufferingGoal: 12, rebufferingGoal: 2.5, bufferBehind: 10, ignoreDeviceCapability: true },
@@ -194,11 +193,9 @@
         player.addEventListener('trackschanged', generateQualityMenu);
         player.addEventListener('variantchanged', updateActiveQualityButton);
 
-        // Quality Engine Switcher
         function generateQualityMenu() {
             qualityListWrapper.innerHTML = '';
             
-            // For TS/HLS Engine
             if (hlsInstance) {
                 const autoBtn = document.createElement('button');
                 autoBtn.className = 'quality-item-btn active';
@@ -207,7 +204,6 @@
                 return;
             }
 
-            // For Shaka Engine
             const autoBtn = document.createElement('button');
             autoBtn.className = 'quality-item-btn';
             autoBtn.id = 'quality-btn-auto';
@@ -270,7 +266,7 @@
             if (activeBtn) activeBtn.classList.add('active');
         }
 
-        const ui = new shaka.ui.Overlay(player, container, video);
+        ui = new shaka.ui.Overlay(player, container, video);
         ui.configure({
             controlPanelElements: [ 'play_pause', 'time_and_duration', 'mute', 'spacer', 'language', 'captions', 'picture_in_picture', 'fullscreen' ],
             seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
@@ -279,7 +275,6 @@
         const shakaControls = document.querySelector('.shaka-controls-container');
         ui.getControls().addNativeContainerListener = function() {}; 
 
-        // Master UI Controls Management
         function showAllControls() {
             if (isLocked) {
                 lockBtn.classList.add('touch-active');
@@ -289,7 +284,7 @@
             }
             controlsVisible = true;
             topLeftPanel.classList.remove('ui-hidden');
-            shakaControls.classList.remove('ui-hidden');
+            if (shakaControls) shakaControls.classList.remove('ui-hidden');
             telegramLink.classList.remove('ui-hidden');
             if (video.paused) { coolPlayOverlay.classList.remove('ui-hidden'); } else { coolPlayOverlay.classList.add('ui-hidden'); }
         }
@@ -298,7 +293,7 @@
             if (video.paused && !isLocked) return;
             controlsVisible = false;
             if (!isLocked) { topLeftPanel.classList.add('ui-hidden'); }
-            shakaControls.classList.add('ui-hidden');
+            if (shakaControls) shakaControls.classList.add('ui-hidden');
             telegramLink.classList.add('ui-hidden');
             coolPlayOverlay.classList.add('ui-hidden');
             serverPopup.style.display = 'none';
@@ -352,11 +347,11 @@
 
         coolPlayBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (video.paused) { video.play(); } else { video.pause(); }
+            if (video.paused) { video.play().catch(()=>{}); } else { video.pause(); }
             resetMasterTimer();
         });
 
-        shakaControls.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
+        if (shakaControls) shakaControls.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
         topLeftPanel.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
         serverPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
         qualityPopup.addEventListener('click', (e) => { e.stopPropagation(); resetMasterTimer(); });
@@ -364,7 +359,6 @@
         video.addEventListener('play', updateCoolPlayBtn);
         video.addEventListener('pause', updateCoolPlayBtn);
 
-        // Core Stream Router Logic (DRM .mpd vs TS/HLS Adaptive)
         async function loadServer(index) {
             if (index >= serverList.length) index = 0;
             currentServerIndex = index;
@@ -376,20 +370,22 @@
             
             if (autoSwitchEnabled) startFallbackTimer();
 
-            // Destroy existing TS stream instances before loading new ones
             if (hlsInstance) {
                 hlsInstance.destroy();
                 hlsInstance = null;
             }
 
+            // রিসেট সোর্স টাইপ টু প্রিভেন্ট ডম ওভারল্যাপ বাগস
+            video.src = "";
             const streamUrl = currentServer.url;
 
-            // Engine Decision Rule
             if (streamUrl.includes('.ts') || streamUrl.includes('.m3u8')) {
-                // Route to TS HLS.js Engine
                 currentQualityLabel.innerText = 'HLS Live';
+                // Shaka ডিটাচ করে HLS রান করার সেফটি গার্ড
+                await player.unload();
+                
                 if (Hls.isSupported()) {
-                    hlsInstance = new Hls({ maxBufferSize: 0, maxBufferLength: 10, liveSyncDurationCount: 3 });
+                    hlsInstance = new Hls({ maxBufferSize: 0, maxBufferLength: 10, liveSyncDurationCount: 3, enableWorker: true });
                     hlsInstance.loadSource(streamUrl);
                     hlsInstance.attachMedia(video);
                     hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -400,11 +396,9 @@
                         if (data.fatal && autoSwitchEnabled) handleStreamFailure();
                     });
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Safari iOS Native Native Fallback
                     video.src = streamUrl;
                 }
             } else {
-                // Route to Shaka Secure DRM Engine (.mpd)
                 try {
                     player.configure({ drm: { clearKeys: currentServer.clearKeys } });
                     await player.load(streamUrl);
@@ -536,7 +530,7 @@
                 serverPopup.style.display = 'none';
                 qualityPopup.style.display = 'none';
                 controlsVisible = true;
-                shakaControls.classList.remove('ui-hidden');
+                if (shakaControls) shakaControls.classList.remove('ui-hidden');
                 topLeftPanel.classList.remove('ui-hidden');
                 telegramLink.classList.remove('ui-hidden');
                 updateCoolPlayBtn();
