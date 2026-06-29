@@ -601,6 +601,14 @@
             clearTimeout(uiMasterTimer);
         });
 
+        infoToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); e.preventDefault();
+            qualityPopup.style.display = 'none';
+            updateVideoInfo();
+            infoPopup.style.display = 'flex';
+            clearTimeout(uiMasterTimer);
+        });
+
         infoCloseBtn.addEventListener('click', (e) => {
             e.stopPropagation(); e.preventDefault();
             infoPopup.style.display = 'none';
@@ -853,12 +861,12 @@
         const gIcon = document.getElementById('gestureIcon');
         const gValue = document.getElementById('gestureValue');
         
-        // --- স্মুথ জেসচার ও ডাবল ট্যাপ লজিক ---
+        // --- স্মুথ জেসচার ও ডাবল ট্যাপ লজিক (নিখুঁত ও সুরক্ষিত এরিয়া) ---
         let startX, startY, startVol, startBright, startGain;
         let osdTimeout;
         let lastTapTime = 0;
         let isMoving = false;
-        const TOUCH_THRESHOLD = 20; // ২০ পিক্সেলের কম নড়াচড়া করলে ওভাররাইড হবে না (মিস-টাচ প্রটেকশন)
+        const TOUCH_THRESHOLD = 25; // মিস-টাচ এড়ানোর জন্য পিক্সেল থ্রেশহোল্ড বাড়ালাম
 
         function showOSD(icon, value) {
             gIcon.innerText = icon;
@@ -871,11 +879,19 @@
         container.addEventListener('touchstart', (e) => {
             const now = Date.now();
             const touch = e.touches[0];
+            const rect = container.getBoundingClientRect();
+            const touchY = touch.clientY - rect.top;
+            
+            // ❌ সুরক্ষামূলক লক (Safe Zone): স্ক্রিনের একদম ওপরের ১৫% এবং নিচের ১৫% অংশে জেসচার কাজ করবে না। 
+            // এর ফলে স্ক্রিনশট বা নোটিফিকেশন বার টানার সময় প্লেয়ার ফ্রিজ হবে না।
+            if (touchY < rect.height * 0.15 || touchY > rect.height * 0.85) {
+                isMoving = false;
+                return; 
+            }
             
             // ডাবল ট্যাপ ফরোয়ার্ড/ব্যাকওয়ার্ড ডিটেকশন (১০ সেকেন্ড সিক)
             if (now - lastTapTime < 250 && !isLocked) {
                 e.preventDefault();
-                const rect = container.getBoundingClientRect();
                 const posX = touch.clientX - rect.left;
                 if (posX > rect.width / 2) {
                     video.currentTime = Math.min(video.duration, video.currentTime + 10);
@@ -884,7 +900,7 @@
                     video.currentTime = Math.max(0, video.currentTime - 10);
                     showOSD('fast_rewind', '-10s');
                 }
-                lastTapTime = 0; // ট্যাপ কাউন্টার রিসেট
+                lastTapTime = 0; 
                 return;
             }
             lastTapTime = now;
@@ -910,30 +926,37 @@
             if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex' || infoPopup.style.display === 'flex') return;
             
             const touch = e.touches[0];
+            const rect = container.getBoundingClientRect();
+            const touchY = touch.clientY - rect.top;
+            
+            // মুভমেন্টের সময়ও Safe Zone চেক বজায় থাকবে
+            if (touchY < rect.height * 0.15 || touchY > rect.height * 0.85) {
+                return;
+            }
+            
             const deltaX = Math.abs(touch.clientX - startX);
             const deltaY = startY - touch.clientY;
             
-            // হালকা টাচ ইগনোর করার জন্য থ্রেশহোল্ড চেক
             if (!isMoving && Math.abs(deltaY) < TOUCH_THRESHOLD && deltaX < TOUCH_THRESHOLD) {
                 return; 
             }
             isMoving = true; 
 
-            // সেনসিটিভিটি কমিয়ে আল্ট্রা স্মুথ ফিল দেওয়া হলো
-            const sensitivity = 0.15; 
+            // জেসচার এরিয়া সুনির্দিষ্টকরণ (বাম ২৫% ব্রাইটনেস, ডান ২৫% ভলিউম)
+            const sensitivity = 0.12; 
             const screenWidth = container.clientWidth;
+            const touchX = touch.clientX - rect.left;
             
-            if (startX < screenWidth / 2) {
-                // বাম পাশে ব্রাইটনেস কন্ট্রোল
+            if (touchX < screenWidth * 0.35) {
+                // 🌗 শুধু বাম পাশের ৩৫% এরিয়াতে ব্রাইটনেস কাজ করবে
                 let newBright = startBright + (deltaY * sensitivity * 2);
                 newBright = Math.max(10, Math.min(100, newBright));
                 brightness = newBright;
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
-            } else {
-                // ডান পাশে ভলিউম এবং বুস্ট কন্ট্রোল
+            } else if (touchX > screenWidth * 0.65) {
+                // 🔊 শুধু ডান পাশের ৩৫% এরিয়াতে ভলিউম এবং বুস্ট কাজ করবে
                 if (deltaY <= 0) {
-                    // নিচের দিকে সোয়াইপ (ভলিউম কমানো)
                     if (startGain > 1.01) {
                         let calculatedGain = startGain + (deltaY * sensitivity / 20);
                         let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
@@ -951,7 +974,6 @@
                         showOSD(newVol <= 0.02 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
                     }
                 } else if (deltaY > 0) {
-                    // উপরের দিকে সোয়াইপ (ভলিউম বাড়ানো / বুস্ট করা)
                     if (startVol < 0.98) {
                         let newVol = startVol + (deltaY * sensitivity / 25);
                         video.volume = Math.min(1, newVol);
@@ -970,7 +992,6 @@
         });
 
         container.addEventListener('touchend', (e) => {
-            // যদি ইউজার স্ক্রিন সোয়াইপ না করে শুধু সিঙ্গেল ক্লিক করে থাকে, তবেই কন্ট্রোল দেখাবে/লুকাবে
             if (!isMoving && Date.now() - lastTapTime < 150) {
                 if (isLocked) { showAllControls(); return; }
                 if (e.target.closest('#topLeftPanel') || e.target.closest('#serverPopup') || e.target.closest('#qualityPopup') || e.target.closest('#infoPopup') || e.target.closest('.shaka-controls-container')) {
