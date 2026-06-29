@@ -199,7 +199,7 @@
     let fallbackTimer = null;
     let uiMasterTimer = null;
     let stealthResetTimer = null;
-    const LOAD_TIMEOUT = 8000; // দ্রুত রেসপন্সের জন্য টাইমআউট ৮ সেকেন্ড করা হলো
+    const LOAD_TIMEOUT = 8000; 
     let currentFitState = 0; 
     let hlsInstance = null; 
     let player = null; 
@@ -334,7 +334,6 @@
         function generateQualityMenu() {
             qualityListWrapper.innerHTML = '';
             if (hlsInstance) {
-                // HLS-এর ট্র্যাকিং কোয়ালিটি ডাইনামিক রেন্ডারিং ফিক্স
                 const levels = hlsInstance.levels;
                 if(levels && levels.length > 0) {
                     const autoBtn = document.createElement('button');
@@ -578,25 +577,7 @@
             }
         }
 
-        container.addEventListener('click', (e) => {
-            if (isLocked) { showAllControls(); return; }
-            
-            if (e.target.closest('#topLeftPanel') || e.target.closest('#serverPopup') || e.target.closest('#qualityPopup') || e.target.closest('#infoPopup') || e.target.closest('.shaka-controls-container')) {
-                return;
-            }
-
-            if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex' || infoPopup.style.display === 'flex') {
-                serverPopup.style.display = 'none';
-                qualityPopup.style.display = 'none';
-                infoPopup.style.display = 'none';
-                resetMasterTimer();
-                return;
-            }
-            if (!controlsVisible) { showAllControls(); resetMasterTimer(); } else { hideAllControls(); clearTimeout(uiMasterTimer); }
-        });
-
         container.addEventListener('mousemove', () => { if (isLocked) return; if (!controlsVisible) showAllControls(); resetMasterTimer(); });
-        container.addEventListener('touchmove', (e) => { if (isLocked) { e.preventDefault(); return; } if (!controlsVisible) showAllControls(); resetMasterTimer(); });
 
         autoSwitchToggle.addEventListener('click', (e) => {
             e.stopPropagation(); e.preventDefault();
@@ -671,7 +652,6 @@
             
             if (autoSwitchEnabled) startFallbackTimer();
 
-            // ইঞ্জিন পরিষ্কার এবং লুপ আটকানোর ফিক্সড মেকানিজম
             if (hlsInstance) {
                 hlsInstance.destroy();
                 hlsInstance = null;
@@ -697,10 +677,9 @@
                     hlsInstance.loadSource(streamUrl);
                     hlsInstance.attachMedia(video);
                     hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                        loader.style.opacity = '0'; // ম্যানিফেস্ট পাৰ্স হলেই কানেক্টিং টেক্সট হাইড হবে
+                        loader.style.opacity = '0'; 
                         stopFallbackTimer();
                         video.play().catch(() => {
-                            video.muted = true; 
                             video.play().catch(()=>{});
                         });
                         generateQualityMenu();
@@ -718,7 +697,6 @@
                     loader.style.opacity = '0';
                     stopFallbackTimer();
                     video.play().catch(() => {
-                        video.muted = true;
                         video.play().catch(()=>{});
                     });
                 } catch (error) {
@@ -758,7 +736,6 @@
         });
 
         video.addEventListener('waiting', () => {
-            // প্লেব্যাক যদি অলরেডি রানিং থাকে তাহলে হুট করে "CONNECTING" ওএসডি পপআপ করা বন্ধ করবে
             if (video.currentTime > 0.1) {
                 statusText.innerText = "BUFFERING...";
             }
@@ -875,8 +852,13 @@
         const gOsd = document.getElementById('gestureOsd');
         const gIcon = document.getElementById('gestureIcon');
         const gValue = document.getElementById('gestureValue');
+        
+        // --- স্মুথ জেসচার ও ডাবল ট্যাপ লজিক ---
         let startX, startY, startVol, startBright, startGain;
         let osdTimeout;
+        let lastTapTime = 0;
+        let isMoving = false;
+        const TOUCH_THRESHOLD = 20; // ২০ পিক্সেলের কম নড়াচড়া করলে ওভাররাইড হবে না (মিস-টাচ প্রটেকশন)
 
         function showOSD(icon, value) {
             gIcon.innerText = icon;
@@ -887,12 +869,33 @@
         }
 
         container.addEventListener('touchstart', (e) => {
-            if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex' || infoPopup.style.display === 'flex') return;
+            const now = Date.now();
             const touch = e.touches[0];
+            
+            // ডাবল ট্যাপ ফরোয়ার্ড/ব্যাকওয়ার্ড ডিটেকশন (১০ সেকেন্ড সিক)
+            if (now - lastTapTime < 250 && !isLocked) {
+                e.preventDefault();
+                const rect = container.getBoundingClientRect();
+                const posX = touch.clientX - rect.left;
+                if (posX > rect.width / 2) {
+                    video.currentTime = Math.min(video.duration, video.currentTime + 10);
+                    showOSD('fast_forward', '+10s');
+                } else {
+                    video.currentTime = Math.max(0, video.currentTime - 10);
+                    showOSD('fast_rewind', '-10s');
+                }
+                lastTapTime = 0; // ট্যাপ কাউন্টার রিসেট
+                return;
+            }
+            lastTapTime = now;
+
+            if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex' || infoPopup.style.display === 'flex') return;
+            
             startX = touch.clientX;
             startY = touch.clientY;
             startVol = video.volume;
             startBright = brightness;
+            isMoving = false;
             
             initAudioBoostEngine();
             startGain = gainNode ? gainNode.gain.value : 1.0;
@@ -905,21 +908,34 @@
 
         container.addEventListener('touchmove', (e) => {
             if (!isPlayerFullscreen || isLocked || serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex' || infoPopup.style.display === 'flex') return;
+            
             const touch = e.touches[0];
+            const deltaX = Math.abs(touch.clientX - startX);
             const deltaY = startY - touch.clientY;
-            const sensitivity = 0.35;
+            
+            // হালকা টাচ ইগনোর করার জন্য থ্রেশহোল্ড চেক
+            if (!isMoving && Math.abs(deltaY) < TOUCH_THRESHOLD && deltaX < TOUCH_THRESHOLD) {
+                return; 
+            }
+            isMoving = true; 
+
+            // সেনসিটিভিটি কমিয়ে আল্ট্রা স্মুথ ফিল দেওয়া হলো
+            const sensitivity = 0.15; 
             const screenWidth = container.clientWidth;
             
             if (startX < screenWidth / 2) {
-                let newBright = startBright + (deltaY * sensitivity);
+                // বাম পাশে ব্রাইটনেস কন্ট্রোল
+                let newBright = startBright + (deltaY * sensitivity * 2);
                 newBright = Math.max(10, Math.min(100, newBright));
                 brightness = newBright;
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } else {
+                // ডান পাশে ভলিউম এবং বুস্ট কন্ট্রোল
                 if (deltaY <= 0) {
+                    // নিচের দিকে সোয়াইপ (ভলিউম কমানো)
                     if (startGain > 1.01) {
-                        let calculatedGain = startGain + (deltaY / 250);
+                        let calculatedGain = startGain + (deltaY * sensitivity / 20);
                         let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
                         setAudioBoostLevel(targetBoost);
                         if (targetBoost <= 1.02) {
@@ -929,20 +945,21 @@
                         }
                     } else {
                         setAudioBoostLevel(1.0);
-                        let newVol = startVol + (deltaY / 300);
+                        let newVol = startVol + (deltaY * sensitivity / 25);
                         newVol = Math.max(0, Math.min(1, newVol));
                         video.volume = newVol;
                         showOSD(newVol <= 0.02 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
                     }
                 } else if (deltaY > 0) {
+                    // উপরের দিকে সোয়াইপ (ভলিউম বাড়ানো / বুস্ট করা)
                     if (startVol < 0.98) {
-                        let newVol = startVol + (deltaY / 300);
+                        let newVol = startVol + (deltaY * sensitivity / 25);
                         video.volume = Math.min(1, newVol);
                         setAudioBoostLevel(1.0);
                         showOSD('volume_up', Math.round(video.volume * 100) + '%');
                     } else {
                         video.volume = 1.0;
-                        let calculatedGain = startGain + (deltaY / 250);
+                        let calculatedGain = startGain + (deltaY * sensitivity / 20);
                         let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
                         setAudioBoostLevel(targetBoost);
                         showOSD('volume_up', `Boost ${Math.round(targetBoost * 100)}% 🚀`);
@@ -950,6 +967,24 @@
                 }
             }
             resetMasterTimer();
+        });
+
+        container.addEventListener('touchend', (e) => {
+            // যদি ইউজার স্ক্রিন সোয়াইপ না করে শুধু সিঙ্গেল ক্লিক করে থাকে, তবেই কন্ট্রোল দেখাবে/লুকাবে
+            if (!isMoving && Date.now() - lastTapTime < 150) {
+                if (isLocked) { showAllControls(); return; }
+                if (e.target.closest('#topLeftPanel') || e.target.closest('#serverPopup') || e.target.closest('#qualityPopup') || e.target.closest('#infoPopup') || e.target.closest('.shaka-controls-container')) {
+                    return;
+                }
+                if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex' || infoPopup.style.display === 'flex') {
+                    serverPopup.style.display = 'none';
+                    qualityPopup.style.display = 'none';
+                    infoPopup.style.display = 'none';
+                    resetMasterTimer();
+                    return;
+                }
+                if (!controlsVisible) { showAllControls(); resetMasterTimer(); } else { hideAllControls(); clearTimeout(uiMasterTimer); }
+            }
         });
     });
 </script>
