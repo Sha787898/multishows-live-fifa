@@ -347,7 +347,7 @@
             autoBtn.innerText = 'Auto (Adaptive)';
             if(player.getConfiguration().abr.enabled) autoBtn.classList.add('active');
             autoBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); e.preventDefault();
                 player.configure({ abr: { enabled: true } });
                 currentQualityLabel.innerText = 'Auto';
                 qualityPopup.style.display = 'none';
@@ -369,7 +369,7 @@
                 btn.id = `track-${track.id}`;
                 btn.innerText = btnText;
                 btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); e.preventDefault();
                     player.configure({ abr: { enabled: false } });
                     player.selectVariantTrack(track, true);
                     currentQualityLabel.innerText = `${track.height}p`;
@@ -402,6 +402,33 @@
             const activeBtn = document.getElementById(activeId);
             if (activeBtn) activeBtn.classList.add('active');
         }
+
+        // Dropdown Menu Toggles Fixed
+        serverMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); e.preventDefault();
+            qualityPopup.style.display = 'none';
+            infoPopup.style.display = 'none';
+            if (serverPopup.style.display === 'flex') {
+                serverPopup.style.display = 'none';
+                resetMasterTimer();
+            } else {
+                serverPopup.style.display = 'flex';
+                clearTimeout(uiMasterTimer);
+            }
+        });
+
+        qualityMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); e.preventDefault();
+            serverPopup.style.display = 'none';
+            infoPopup.style.display = 'none';
+            if (qualityPopup.style.display === 'flex') {
+                qualityPopup.style.display = 'none';
+                resetMasterTimer();
+            } else {
+                qualityPopup.style.display = 'flex';
+                clearTimeout(uiMasterTimer);
+            }
+        });
 
         const ui = new shaka.ui.Overlay(player, container, video);
         ui.configure({
@@ -468,7 +495,7 @@
         player.addEventListener('variantchanged', updateVideoInfo);
 
         fitScreenBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); e.preventDefault();
             currentFitState = (currentFitState + 1) % 3;
             video.classList.remove('fit-contain', 'fit-stretch', 'fit-cover');
             
@@ -514,11 +541,19 @@
         function resetMasterTimer() {
             if (isLocked) return;
             clearTimeout(uiMasterTimer);
-            if (!video.paused && infoPopup.style.display !== 'flex') { uiMasterTimer = setTimeout(hideAllControls, 4000); }
+            if (!video.paused && infoPopup.style.display !== 'flex' && serverPopup.style.display !== 'flex' && qualityPopup.style.display !== 'flex') { 
+                uiMasterTimer = setTimeout(hideAllControls, 4000); 
+            }
         }
 
         container.addEventListener('click', (e) => {
             if (isLocked) { showAllControls(); return; }
+            
+            // UI Element-এ ক্লিক লাগলে মেনু বন্ধ হওয়া আটকাবে
+            if (e.target.closest('#topLeftPanel') || e.target.closest('#serverPopup') || e.target.closest('#qualityPopup') || e.target.closest('#infoPopup') || e.target.closest('.shaka-controls-container')) {
+                return;
+            }
+
             if (serverPopup.style.display === 'flex' || qualityPopup.style.display === 'flex' || infoPopup.style.display === 'flex') {
                 serverPopup.style.display = 'none';
                 qualityPopup.style.display = 'none';
@@ -533,7 +568,7 @@
         container.addEventListener('touchmove', (e) => { if (isLocked) { e.preventDefault(); return; } if (!controlsVisible) showAllControls(); resetMasterTimer(); });
 
         autoSwitchToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); e.preventDefault();
             autoSwitchEnabled = !autoSwitchEnabled;
             if(autoSwitchEnabled) {
                 autoSwitchToggle.className = "toggle-btn auto-on";
@@ -547,7 +582,7 @@
         });
 
         infoToggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); e.preventDefault();
             qualityPopup.style.display = 'none';
             updateVideoInfo();
             infoPopup.style.display = 'flex';
@@ -555,7 +590,7 @@
         });
 
         infoCloseBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); e.preventDefault();
             infoPopup.style.display = 'none';
             resetMasterTimer();
         });
@@ -572,7 +607,7 @@
         }
 
         coolPlayBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); e.preventDefault();
             if (video.paused) { video.play().catch(()=>{}); } else { video.pause(); }
             resetMasterTimer();
         });
@@ -702,7 +737,7 @@
                 btn.innerText = srv.name;
                 if(idx === currentServerIndex) btn.classList.add('active');
                 btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); e.preventDefault();
                     serverPopup.style.display = 'none';
                     if(idx !== currentServerIndex) { loadServer(idx); }
                     resetMasterTimer();
@@ -840,24 +875,34 @@
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } else {
-                // FIXED: Volume down safely logic to prevent context freeze
+                // Volume Adjustments Safely Fixed (No UI Thread Block)
                 if (deltaY <= 0) {
-                    let newVol = startVol + (deltaY / 300);
-                    newVol = Math.max(0, Math.min(1, newVol));
-                    video.volume = newVol;
-                    
-                    if (newVol <= 0.01) {
-                        video.volume = 0;
+                    // ভলিউম কমানোর লজিক
+                    if (startGain > 1.01) {
+                        let calculatedGain = startGain + (deltaY / 250);
+                        let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
+                        setAudioBoostLevel(targetBoost);
+                        if (targetBoost <= 1.02) {
+                            showOSD('volume_up', '100%');
+                        } else {
+                            showOSD('volume_up', `Boost ${Math.round(targetBoost * 100)}% 🚀`);
+                        }
+                    } else {
+                        setAudioBoostLevel(1.0);
+                        let newVol = startVol + (deltaY / 300);
+                        newVol = Math.max(0, Math.min(1, newVol));
+                        video.volume = newVol;
+                        showOSD(newVol <= 0.02 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
                     }
-                    
-                    setAudioBoostLevel(1.0); 
-                    showOSD(video.volume === 0 ? 'volume_off' : 'volume_up', Math.round(video.volume * 100) + '%');
                 } else if (deltaY > 0) {
-                    if (video.volume < 0.99) {
+                    // ভলিউম বাড়ানো এবং বুস্ট ট্রিগার লজিক
+                    if (startVol < 0.98) {
                         let newVol = startVol + (deltaY / 300);
                         video.volume = Math.min(1, newVol);
+                        setAudioBoostLevel(1.0);
                         showOSD('volume_up', Math.round(video.volume * 100) + '%');
                     } else {
+                        video.volume = 1.0;
                         let calculatedGain = startGain + (deltaY / 250);
                         let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
                         setAudioBoostLevel(targetBoost);
