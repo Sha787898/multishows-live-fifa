@@ -3,19 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="referrer" content="no-referrer">
     <title>MultiShows Premium Stream</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.8/hls.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FMP9REY96D"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-FMP9REY96D');
-    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         html, body { background: #000; height: 100%; width: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
@@ -210,7 +202,7 @@
     let hlsInstance = null; 
     let player = null; 
 
-    // Advanced Audio Boost Engine Setup
+    // Audio Engine Setup
     let audioCtx = null;
     let gainNode = null;
     let compressorNode = null;
@@ -237,9 +229,8 @@
             sourceNode.connect(compressorNode);
             compressorNode.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            console.log("MultiShows Premium Audio System Integrated Successfully.");
         } catch(e) {
-            console.error("Audio Boost Context Blocked By Browser Environment:", e);
+            console.error("Audio Context Blocked:", e);
         }
     }
 
@@ -249,14 +240,14 @@
             audioCtx.resume();
         }
         if (gainNode) {
-            audioBoostMultiplier = Math.max(1.0, Math.min(3.0, multiplier)); // Soft Limit max 300%
+            audioBoostMultiplier = Math.max(1.0, Math.min(3.0, multiplier));
             gainNode.gain.setValueAtTime(audioBoostMultiplier, audioCtx.currentTime);
         }
     }
 
     async function fetchSecureServers() {
         try {
-            // FIXED: Added security handshake tokens into Request Headers to pass Worker Firewall rules
+            // FIXED: ডিরেক্ট ওয়ার্কার ইউআরএল ফেস করা হচ্ছে হ্যান্ডশেক সহ যাতে কুয়েরি পাস হয়
             const response = await fetch('https://solitary-meadow-ecemultishows-api.shabidalhasan.workers.dev/?t=' + new Date().getTime(), { 
                 method: 'GET',
                 headers: {
@@ -264,17 +255,17 @@
                     'Accept': 'application/json'
                 }
             });
-            if (!response.ok) throw new Error('Security Handshake Failed');
+            if (!response.ok) throw new Error('Handshake Failed');
             const rawData = await response.json();
             if(rawData && rawData.match_1 && rawData.match_1.servers) {
                 serverList = rawData.match_1.servers;
                 return true;
             } else {
-                throw new Error('Invalid API Response Format');
+                throw new Error('Format Error');
             }
         } catch (error) {
-            console.error("Security Fetch Error:", error);
-            document.getElementById('statusText').innerText = "SECURITY ERROR: WORKER AUTH REJECTED.";
+            console.error("Fetch Error:", error);
+            document.getElementById('statusText').innerText = "CONNECTION ERROR. RETRYING...";
             return false;
         }
     }
@@ -321,19 +312,20 @@
             }
         });
         
+        // FIXED: স্লো ইন্টারনেটেও ম্যাক্স স্পিড স্ট্রিম এবং বাফারিং সেভ রাখার কনফিগারেশন
         player.configure({
             streaming: { 
                 lowLatencyMode: false,
-                bufferingGoal: 45,     
-                rebufferingGoal: 8, 
-                bufferBehind: 15, 
+                bufferingGoal: 60,     // ৬০ সেকেন্ড আগে থেকেই ডাটা রিকোয়েস্ট করে টানবে
+                rebufferingGoal: 10,   
+                bufferBehind: 20, 
                 ignoreDeviceCapability: true,
                 alwaysKeepInSync: true,
-                stallThreshold: 1.5,
-                retryParameters: { maxAttempts: 5, baseDelay: 1000, backoffFactor: 1.5, timeout: 8000 }
+                stallThreshold: 3.0,   // বাফারিং লুপ আটকাতে স্টল লিমিট বাড়ানো হলো
+                retryParameters: { maxAttempts: 8, baseDelay: 1000, backoffFactor: 1.5, timeout: 10000 }
             },
             manifest: { dash: { ignoreMinBufferTime: true, multiTypeVariantsAllowed: true }, disableVideo: false },
-            abr: { enabled: true, defaultBandwidthEstimate: 12000000 }
+            abr: { enabled: true, defaultBandwidthEstimate: 15000000 } // হাই স্পিড ব্যান্ডউইথ ডিফল্ট সেটআপ
         });
 
         player.addEventListener('trackschanged', generateQualityMenu);
@@ -436,12 +428,12 @@
             if (hlsInstance) {
                 const is4K = video.videoWidth >= 3840 || video.videoHeight >= 2160;
                 document.getElementById('metaRes').innerText = is4K ? '3840x2160 (4K UHD)' : `${video.videoWidth || 1920}x${video.videoHeight || 1080}`;
-                document.getElementById('metaCodec').innerText = "AVC (H.264) / Main Profile";
-                document.getElementById('metaHdr').innerText = "SDR (Standard Range)";
+                document.getElementById('metaCodec').innerText = "AVC (H.264)";
+                document.getElementById('metaHdr').innerText = "SDR";
                 document.getElementById('metaBitDepth').innerText = "8-bit Standard";
-                document.getElementById('metaAudio').innerText = audioBoostMultiplier > 1.0 ? `Boosted Core (${Math.round(audioBoostMultiplier*100)}%)` : "AAC Stereo Master";
-                document.getElementById('metaBandwidth').innerText = "Live HLS Streaming Engine";
-                document.getElementById('metaFps').innerText = "60 FPS (Adaptive)";
+                document.getElementById('metaAudio').innerText = audioBoostMultiplier > 1.0 ? `Boosted (${Math.round(audioBoostMultiplier*100)}%)` : "Stereo Native";
+                document.getElementById('metaBandwidth').innerText = "HLS Stream";
+                document.getElementById('metaFps').innerText = "60 FPS";
                 document.getElementById('metaEngine').innerText = "Hls.js Engine Native";
             } else if (player) {
                 const stats = player.getStats();
@@ -455,33 +447,20 @@
                     
                     let vCodec = activeTrack.videoCodec || '';
                     if (vCodec.includes('hvc1') || vCodec.includes('hev1')) {
-                        document.getElementById('metaCodec').innerText = "HEVC (H.265) High Efficiency";
-                        document.getElementById('metaBitDepth').innerText = "10-bit High Profile";
-                        document.getElementById('metaHdr').innerText = "HDR10 / Wide Color Gamut";
-                    } else if (vCodec.includes('avc1')) {
-                        document.getElementById('metaCodec').innerText = "AVC (H.264) Standard";
-                        document.getElementById('metaBitDepth').innerText = "8-bit Base Profile";
-                        document.getElementById('metaHdr').innerText = "SDR (Standard Dynamic Range)";
+                        document.getElementById('metaCodec').innerText = "HEVC (H.265)";
+                        document.getElementById('metaBitDepth').innerText = "10-bit Profile";
+                        document.getElementById('metaHdr').innerText = "HDR10";
                     } else {
-                        document.getElementById('metaCodec').innerText = vCodec.toUpperCase() || "AVC (H.264)";
-                        document.getElementById('metaBitDepth').innerText = "8-bit Standard";
+                        document.getElementById('metaCodec').innerText = "AVC (H.264)";
+                        document.getElementById('metaBitDepth').innerText = "8-bit Profile";
                         document.getElementById('metaHdr').innerText = "SDR";
                     }
-
-                    let aCodec = activeTrack.audioCodec || '';
-                    let audioBaseText = "Dolby Digital Plus";
-                    if (aCodec.includes('ec-3') || aCodec.includes('ac-3')) {
-                        audioBaseText = "Dolby Digital Plus (E-AC-3)";
-                    } else if (aCodec.includes('mp4a')) {
-                        audioBaseText = "Advanced Audio Coding (AAC)";
-                    }
-                    document.getElementById('metaAudio').innerText = audioBoostMultiplier > 1.0 ? `${audioBaseText} + [Boost ${Math.round(audioBoostMultiplier*100)}%]` : audioBaseText;
-
+                    document.getElementById('metaAudio').innerText = "AAC Audio";
                     document.getElementById('metaBandwidth').innerText = `${(activeTrack.bandwidth / 1000000).toFixed(2)} Mbps`;
                     document.getElementById('metaFps').innerText = `${Math.round(activeTrack.frameRate || 60)} FPS`;
                 }
                 if (stats) {
-                    document.getElementById('metaEngine').innerText = "Shaka Core Production Engine";
+                    document.getElementById('metaEngine').innerText = "Shaka Core Engine";
                 }
             }
         }
@@ -594,7 +573,7 @@
 
         coolPlayBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (video.paused) { video.play(); } else { video.pause(); }
+            if (video.paused) { video.play().catch(()=>{}); } else { video.pause(); }
             resetMasterTimer();
         });
 
@@ -637,18 +616,21 @@
                 currentQualityLabel.innerText = 'HLS Live';
                 if (Hls.isSupported()) {
                     hlsInstance = new Hls({ 
-                        maxBufferSize: 35 * 1000 * 1000, 
-                        maxBufferLength: 25, 
+                        maxBufferSize: 50 * 1000 * 1000, // ৫৫ এমবি অতিরিক্ত বাফার ধারণ ক্ষমতা
+                        maxBufferLength: 35, 
                         liveSyncDurationCount: 3,
                         enableWorker: true,
                         lowLatencyMode: false,
-                        abrEwmaDefaultEstimate: 12000000, 
-                        appendErrorMaxRetry: 6
+                        abrEwmaDefaultEstimate: 15000000, 
+                        appendErrorMaxRetry: 10
                     });
                     hlsInstance.loadSource(streamUrl);
                     hlsInstance.attachMedia(video);
                     hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                        video.play().catch(() => {});
+                        video.play().catch(() => {
+                            video.muted = true; // অটোপ্লে পলিসি এড়াতে ব্যাকআপ মিউট প্লে
+                            video.play().catch(()=>{});
+                        });
                         generateQualityMenu();
                     });
                     hlsInstance.on(Hls.Events.ERROR, function (event, data) {
@@ -661,6 +643,10 @@
                 try {
                     player.configure({ drm: { clearKeys: currentServer.clearKeys } });
                     await player.load(streamUrl);
+                    video.play().catch(() => {
+                        video.muted = true;
+                        video.play().catch(()=>{});
+                    });
                 } catch (error) {
                     if (autoSwitchEnabled) handleStreamFailure();
                 }
@@ -678,12 +664,12 @@
 
         function handleStreamFailure() {
             stopFallbackTimer();
-            if (!autoSwitchEnabled) { statusText.innerText = "BUFFERING (AUTO SWITCH OFF)..."; return; }
+            if (!autoSwitchEnabled) { statusText.innerText = "BUFFERING..."; return; }
             let safeCurrent = window.getSafeServerIndex(currentServerIndex);
             let nextIndex = (safeCurrent + 1) % serverList.length;
-            statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING TO SERVER ${nextIndex + 1}...</span>`;
+            statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING SERVER...</span>`;
             loader.style.opacity = '1';
-            setTimeout(() => { loadServer(nextIndex); }, 2000);
+            setTimeout(() => { loadServer(nextIndex); }, 1500);
         }
 
         video.addEventListener('playing', () => {
@@ -728,6 +714,12 @@
         const secureLoadSuccess = await fetchSecureServers();
         if (secureLoadSuccess && serverList.length > 0) {
             await loadServer(0);
+        } else {
+            // API কানেক্ট না হলেও ২ সেকেন্ড পর আবার ট্রাই করবে, ক্র্যাশ করবে না
+            setTimeout(async () => {
+                const retrySuccess = await fetchSecureServers();
+                if (retrySuccess && serverList.length > 0) await loadServer(0);
+            }, 2000);
         }
 
         serverMenuBtn.addEventListener('click', (e) => {
@@ -859,7 +851,6 @@
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } else {
-                // FIXED: Volume Mapping Dynamic Reset Rule Added
                 if (startGain <= 1.05 && deltaY <= 0 && video.volume > 0) {
                     let newVol = startVol + (deltaY / 300);
                     newVol = Math.max(0, Math.min(1, newVol));
