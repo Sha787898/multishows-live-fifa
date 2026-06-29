@@ -20,7 +20,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         html, body { background: #000; height: 100%; width: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
         
-        /* Strict Player Container Setup with Cutout/Notch Support */
         .shaka-video-container { 
             position: relative; 
             width: 100% !important; 
@@ -31,7 +30,6 @@
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         
-        /* Video Object Fit Styles with Absolute Reset to fix Left-side stretching */
         video { width: 100% !important; height: 100% !important; background: #000; display: block !important; transition: object-fit 0.2s ease; margin: 0 !important; padding: 0 !important; left: 0 !important; top: 0 !important; }
         video.fit-contain { object-fit: contain !important; }
         video.fit-stretch { object-fit: fill !important; }
@@ -39,37 +37,30 @@
 
         #brightnessOverlay { position: absolute; inset: 0; background: black; opacity: 0; pointer-events: none; z-index: 1; }
         
-        /* CONTROLS CONTAINER */
         .shaka-controls-container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; background: transparent !important; box-sizing: border-box !important; }
         
-        /* NUKE MIDDLE BIG BUTTONS EXTENSIVELY */
         .shaka-play-button-container, .shaka-scrim-container { 
             display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; width: 0px !important; height: 0px !important;
         }
 
-        /* MultiShows Theme Matching Color Scheme */
         .shaka-play-pause-button, .shaka-mute-button, .shaka-picture-in-picture-button, .shaka-fullscreen-button { color: #E11D48 !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 12px rgba(225, 29, 72, 0.7); }
         .shaka-seek-bar-container .shaka-seek-bar-buffered { background: rgba(255, 255, 255, 0.25) !important; }
         
-        /* Premium Watermark */
         .video-watermark { position: absolute; top: 12px; right: 12px; background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 6px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); text-decoration: none !important; transition: all 0.3s ease; }
         .video-watermark span { color: rgba(255, 255, 255, 0.7); font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: inline-block; }
         .video-watermark:hover { background: #E11D48; border-color: #E11D48; }
         .video-watermark:hover span { color: #fff; }
         
-        /* Panel Layout */
         .top-left-panel { position: absolute; top: 12px; left: 12px; z-index: 100; display: flex; gap: 6px; align-items: center; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .top-btn { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); height: 24px; padding: 0 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; backdrop-filter: blur(4px); transition: all 0.2s ease; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; }
         .top-btn.btn-circle { width: 24px; padding: 0; }
         .top-btn span.material-icons { font-size: 12px; }
         .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; box-shadow: 0 0 10px rgba(225, 29, 72, 0.4); }
         
-        /* Lock UI Logic */
         #lockBtn { display: none; }
         .is-fullscreen #lockBtn { display: flex; }
         .player-locked #lockBtn { position: absolute !important; top: 12px !important; left: 12px !important; z-index: 210 !important; background: transparent !important; border: none !important; color: rgba(255, 255, 255, 0.2) !important; width: 20px !important; height: 20px !important; opacity: 0.2; transform: scale(0.85); box-shadow: none !important; backdrop-filter: none !important; }
-        .player-locked #lockBtn span { font-size: 13px !important; color: #fff !important; }
         .player-locked #lockBtn.touch-active { opacity: 0.6; color: rgba(255, 255, 255, 0.8) !important; }
         .player-locked .top-left-panel > button:not(#lockBtn) { display: none !important; }
         .player-locked .shaka-controls-container { display: none !important; pointer-events: none !important; }
@@ -77,7 +68,6 @@
         .player-locked .cool-play-overlay { display: none !important; }
         .player-locked #infoPopup { display: none !important; }
         
-        /* Popups with MultiShows Crimson Accents */
         .server-popup, .quality-popup { position: absolute; top: 42px; left: 12px; background: rgba(12, 12, 12, 0.96); backdrop-filter: blur(6px); border: 1px solid rgba(225, 29, 72, 0.3); border-radius: 8px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 155px; z-index: 101; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
         .quality-popup { left: 172px; width: 185px; }
         .server-list-wrapper, .quality-list-wrapper { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; padding-right: 2px; }
@@ -97,7 +87,6 @@
         .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(225, 29, 72, 0.1); color: #fff; }
         .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; }
         
-        /* EXTENDED ADVANCED METADATA BOX */
         .info-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); border-radius: 12px; padding: 16px; display: none; flex-direction: column; gap: 10px; width: 280px; z-index: 200; box-shadow: 0 20px 50px rgba(0,0,0,0.9); color: #fff; }
         .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px; margin-bottom: 2px; }
         .info-title { font-size: 11px; font-weight: 700; color: #E11D48; letter-spacing: 0.8px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; }
@@ -107,18 +96,15 @@
         .info-row { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 500; color: rgba(255, 255, 255, 0.65); padding: 2px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
         .info-val { color: #fff; font-weight: 700; font-family: monospace; text-shadow: 0 0 5px rgba(255,255,255,0.1); }
 
-        /* Centered Play Overlay Button */
         .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .cool-play-btn { width: 60px; height: 60px; background: rgba(10, 10, 10, 0.8); border: 2px solid #E11D48; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .cool-play-btn span { color: #fff; font-size: 30px; margin-left: 2px; }
         .cool-play-btn:hover { transform: scale(1.08); background: #E11D48; box-shadow: 0 0 25px rgba(225, 29, 72, 0.7); }
         
-        /* OSD & Loaders */
         .gesture-indicator { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.8); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; z-index: 99; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; border: 1px solid rgba(225, 29, 72, 0.25); backdrop-filter: blur(6px); }
         .custom-loader { position: absolute; top: calc(50% + 55px); left: 50%; transform: translate(-50%, -50%); z-index: 9; pointer-events: none; transition: opacity 0.3s ease; }
         .loading-text { background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(6px); padding: 6px 16px; border-radius: 30px; color: #E11D48; font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; border: 1px solid rgba(225, 29, 72, 0.2); white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         
-        /* Structural Overrides */
         .shaka-volume-bar-container { display: none !important; }
         .shaka-bottom-controls + .shaka-bottom-controls { display: none !important; }
         .ui-hidden { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
@@ -220,18 +206,16 @@
     let uiMasterTimer = null;
     let stealthResetTimer = null;
     const LOAD_TIMEOUT = 12000;
-
     let currentFitState = 0; 
-
     let hlsInstance = null; 
     let player = null; 
 
-    // Advanced Audio Boost Context Hooks (DDP Safe Node Chaining)
+    // Advanced Audio Boost Engine Setup
     let audioCtx = null;
     let gainNode = null;
     let compressorNode = null;
     let sourceNode = null;
-    let audioBoostMultiplier = 1.0; // Base Node Range (100%)
+    let audioBoostMultiplier = 1.0; 
 
     function initAudioBoostEngine() {
         if (audioCtx) return;
@@ -272,7 +256,14 @@
 
     async function fetchSecureServers() {
         try {
-            const response = await fetch('https://solitary-meadow-ecemultishows-api.shabidalhasan.workers.dev/?t=' + new Date().getTime(), { method: 'GET' });
+            // FIXED: Added security handshake tokens into Request Headers to pass Worker Firewall rules
+            const response = await fetch('https://solitary-meadow-ecemultishows-api.shabidalhasan.workers.dev/?t=' + new Date().getTime(), { 
+                method: 'GET',
+                headers: {
+                    'X-MultiShows-Auth': 'Premium-Streaming-MS-2026',
+                    'Accept': 'application/json'
+                }
+            });
             if (!response.ok) throw new Error('Security Handshake Failed');
             const rawData = await response.json();
             if(rawData && rawData.match_1 && rawData.match_1.servers) {
@@ -283,7 +274,7 @@
             }
         } catch (error) {
             console.error("Security Fetch Error:", error);
-            document.getElementById('statusText').innerText = "SECURITY ERROR: KEY PROTECTED.";
+            document.getElementById('statusText').innerText = "SECURITY ERROR: WORKER AUTH REJECTED.";
             return false;
         }
     }
@@ -314,7 +305,6 @@
         const coolPlayOverlay = document.getElementById('coolPlayOverlay');
         const coolPlayBtn = document.getElementById('coolPlayBtn');
         const coolPlayIcon = document.getElementById('coolPlayIcon');
-        
         const infoToggleBtn = document.getElementById('infoToggleBtn');
         const infoPopup = document.getElementById('infoPopup');
         const infoCloseBtn = document.getElementById('infoCloseBtn');
@@ -323,7 +313,6 @@
 
         player = new shaka.Player(video);
         
-        // Dynamic Network Filters For Secure Cloudflare Key Authorization
         player.getNetworkingEngine().registerRequestFilter(function(type, request) {
             if (type == shaka.net.NetworkingEngine.RequestType.LICENSE || request.uris[0].includes('cloudflare')) {
                 request.headers['Origin'] = window.location.origin;
@@ -335,18 +324,13 @@
         player.configure({
             streaming: { 
                 lowLatencyMode: false,
-                bufferingGoal: 45,     // Boosted buffering stream goals to pull max connection rate
+                bufferingGoal: 45,     
                 rebufferingGoal: 8, 
                 bufferBehind: 15, 
                 ignoreDeviceCapability: true,
                 alwaysKeepInSync: true,
                 stallThreshold: 1.5,
-                retryParameters: {
-                    maxAttempts: 5,
-                    baseDelay: 1000,
-                    backoffFactor: 1.5,
-                    timeout: 8000
-                }
+                retryParameters: { maxAttempts: 5, baseDelay: 1000, backoffFactor: 1.5, timeout: 8000 }
             },
             manifest: { dash: { ignoreMinBufferTime: true, multiTypeVariantsAllowed: true }, disableVideo: false },
             abr: { enabled: true, defaultBandwidthEstimate: 12000000 }
@@ -357,7 +341,6 @@
 
         function generateQualityMenu() {
             qualityListWrapper.innerHTML = '';
-            
             if (hlsInstance) {
                 const autoBtn = document.createElement('button');
                 autoBtn.className = 'quality-item-btn active';
@@ -626,10 +609,7 @@
 
         window.getSafeServerIndex = function (currentServerIndex) {
             let nextIndex = parseInt(currentServerIndex, 10);
-            if (isNaN(nextIndex)) {
-                console.warn("Detected NaN in server switching. Safe fallback to Server 1.");
-                return 0; 
-            }
+            if (isNaN(nextIndex)) { return 0; }
             return nextIndex;
         };
 
@@ -714,7 +694,6 @@
             resetMasterTimer();
             nukeShakaButtons();
             updateVideoInfo();
-            // Initialize Audio boost mapping on actual user playback kickstart
             initAudioBoostEngine();
         });
 
@@ -880,20 +859,23 @@
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } else {
-                // Volume + Boost Intelligent Multimapping Gesture
-                if (startVol < 1.0 || deltaY < 0 && video.volume < 1.0 && startGain <= 1.01) {
-                    // Standard Track Range Control
+                // FIXED: Volume Mapping Dynamic Reset Rule Added
+                if (startGain <= 1.05 && deltaY <= 0 && video.volume > 0) {
                     let newVol = startVol + (deltaY / 300);
                     newVol = Math.max(0, Math.min(1, newVol));
                     video.volume = newVol;
-                    setAudioBoostLevel(1.0); // Keep normal node
+                    setAudioBoostLevel(1.0); 
                     showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
-                } else {
-                    // Boost Mode Activated (>100%)
+                } else if (video.volume >= 0.99) {
                     let calculatedGain = startGain + (deltaY / 250);
                     let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
                     setAudioBoostLevel(targetBoost);
-                    showOSD('volume_up', `Boost ${Math.round(targetBoost * 100)}% 🚀`);
+                    
+                    if (targetBoost <= 1.01) {
+                        showOSD('volume_up', '100%');
+                    } else {
+                        showOSD('volume_up', `Boost ${Math.round(targetBoost * 100)}% 🚀`);
+                    }
                 }
             }
             resetMasterTimer();
