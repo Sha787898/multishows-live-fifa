@@ -50,10 +50,8 @@
         .top-btn span.material-icons { font-size: 12px; }
         .top-btn:hover, .top-btn.active-btn { background: #E11D48; color: #fff; border-color: #E11D48; box-shadow: 0 0 10px rgba(225, 29, 72, 0.4); }
         
-        /* FIXED: Normal view te Lock ebong Fit screen button hide thakbe */
         #lockBtn, #fitScreenBtn { display: none; }
         
-        /* FIXED: Shudhumatru Fullscreen active holei egulo show korbe */
         .is-fullscreen #lockBtn, .is-fullscreen #fitScreenBtn { display: flex; }
         
         .player-locked #lockBtn { position: absolute !important; top: 12px !important; left: 12px !important; z-index: 210 !important; background: transparent !important; border: none !important; color: rgba(255, 255, 255, 0.2) !important; width: 20px !important; height: 20px !important; opacity: 0.2; transform: scale(0.85); box-shadow: none !important; backdrop-filter: none !important; }
@@ -781,7 +779,6 @@
                 topLeftPanel.classList.remove('ui-hidden');
                 telegramLink.classList.remove('ui-hidden');
                 
-                /* FIXED: Fullscreen execution clear korar por zoom state content contain layer a default hobe */
                 currentFitState = 0;
                 video.classList.remove('fit-stretch', 'fit-cover');
                 video.classList.add('fit-contain');
@@ -843,20 +840,27 @@
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } else {
-                if (startGain <= 1.05 && deltaY <= 0 && video.volume > 0) {
+                // FIXED: Volume down safely logic to prevent context freeze
+                if (deltaY <= 0) {
                     let newVol = startVol + (deltaY / 300);
                     newVol = Math.max(0, Math.min(1, newVol));
                     video.volume = newVol;
-                    setAudioBoostLevel(1.0); 
-                    showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
-                } else if (video.volume >= 0.99) {
-                    let calculatedGain = startGain + (deltaY / 250);
-                    let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
-                    setAudioBoostLevel(targetBoost);
                     
-                    if (targetBoost <= 1.01) {
-                        showOSD('volume_up', '100%');
+                    if (newVol <= 0.01) {
+                        video.volume = 0;
+                    }
+                    
+                    setAudioBoostLevel(1.0); 
+                    showOSD(video.volume === 0 ? 'volume_off' : 'volume_up', Math.round(video.volume * 100) + '%');
+                } else if (deltaY > 0) {
+                    if (video.volume < 0.99) {
+                        let newVol = startVol + (deltaY / 300);
+                        video.volume = Math.min(1, newVol);
+                        showOSD('volume_up', Math.round(video.volume * 100) + '%');
                     } else {
+                        let calculatedGain = startGain + (deltaY / 250);
+                        let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
+                        setAudioBoostLevel(targetBoost);
                         showOSD('volume_up', `Boost ${Math.round(targetBoost * 100)}% 🚀`);
                     }
                 }
