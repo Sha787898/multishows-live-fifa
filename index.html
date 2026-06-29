@@ -199,7 +199,7 @@
     let fallbackTimer = null;
     let uiMasterTimer = null;
     let stealthResetTimer = null;
-    const LOAD_TIMEOUT = 12000;
+    const LOAD_TIMEOUT = 8000; // দ্রুত রেসপন্সের জন্য টাইমআউট ৮ সেকেন্ড করা হলো
     let currentFitState = 0; 
     let hlsInstance = null; 
     let player = null; 
@@ -315,17 +315,17 @@
         
         player.configure({
             streaming: { 
-                lowLatencyMode: false,
-                bufferingGoal: 60,     
-                rebufferingGoal: 10,   
-                bufferBehind: 20, 
+                lowLatencyMode: true,
+                bufferingGoal: 30,     
+                rebufferingGoal: 4,   
+                bufferBehind: 15, 
                 ignoreDeviceCapability: true,
                 alwaysKeepInSync: true,
-                stallThreshold: 3.0,   
-                retryParameters: { maxAttempts: 8, baseDelay: 1000, backoffFactor: 1.5, timeout: 10000 }
+                stallThreshold: 2.0,   
+                retryParameters: { maxAttempts: 5, baseDelay: 500, backoffFactor: 1.2, timeout: 5000 }
             },
             manifest: { dash: { ignoreMinBufferTime: true, multiTypeVariantsAllowed: true }, disableVideo: false },
-            abr: { enabled: true, defaultBandwidthEstimate: 15000000 } 
+            abr: { enabled: true, defaultBandwidthEstimate: 10000000 } 
         });
 
         player.addEventListener('trackschanged', generateQualityMenu);
@@ -334,10 +334,43 @@
         function generateQualityMenu() {
             qualityListWrapper.innerHTML = '';
             if (hlsInstance) {
-                const autoBtn = document.createElement('button');
-                autoBtn.className = 'quality-item-btn active';
-                autoBtn.innerText = 'Adaptive Dynamic';
-                qualityListWrapper.appendChild(autoBtn);
+                // HLS-এর ট্র্যাকিং কোয়ালিটি ডাইনামিক রেন্ডারিং ফিক্স
+                const levels = hlsInstance.levels;
+                if(levels && levels.length > 0) {
+                    const autoBtn = document.createElement('button');
+                    autoBtn.className = 'quality-item-btn';
+                    autoBtn.id = 'hls-quality-auto';
+                    autoBtn.innerText = 'Auto (Adaptive)';
+                    if(hlsInstance.currentLevel === -1) autoBtn.classList.add('active');
+                    autoBtn.addEventListener('click', (e) => {
+                        e.stopPropagation(); e.preventDefault();
+                        hlsInstance.currentLevel = -1;
+                        currentQualityLabel.innerText = 'Auto';
+                        qualityPopup.style.display = 'none';
+                        resetMasterTimer();
+                    });
+                    qualityListWrapper.appendChild(autoBtn);
+
+                    levels.forEach((level, index) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'quality-item-btn';
+                        if(hlsInstance.currentLevel === index) btn.classList.add('active');
+                        btn.innerText = level.height ? `${level.height}p` : `Stream ${index+1}`;
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation(); e.preventDefault();
+                            hlsInstance.currentLevel = index;
+                            currentQualityLabel.innerText = level.height ? `${level.height}p` : 'Manual';
+                            qualityPopup.style.display = 'none';
+                            resetMasterTimer();
+                        });
+                        qualityListWrapper.appendChild(btn);
+                    });
+                } else {
+                    const fallbackBtn = document.createElement('button');
+                    fallbackBtn.className = 'quality-item-btn active';
+                    fallbackBtn.innerText = 'Adaptive Dynamic';
+                    qualityListWrapper.appendChild(fallbackBtn);
+                }
                 return;
             }
 
@@ -403,7 +436,6 @@
             if (activeBtn) activeBtn.classList.add('active');
         }
 
-        // Dropdown Menu Toggles Fixed
         serverMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation(); e.preventDefault();
             qualityPopup.style.display = 'none';
@@ -549,7 +581,6 @@
         container.addEventListener('click', (e) => {
             if (isLocked) { showAllControls(); return; }
             
-            // UI Element-এ ক্লিক লাগলে মেনু বন্ধ হওয়া আটকাবে
             if (e.target.closest('#topLeftPanel') || e.target.closest('#serverPopup') || e.target.closest('#qualityPopup') || e.target.closest('#infoPopup') || e.target.closest('.shaka-controls-container')) {
                 return;
             }
@@ -640,10 +671,14 @@
             
             if (autoSwitchEnabled) startFallbackTimer();
 
+            // ইঞ্জিন পরিষ্কার এবং লুপ আটকানোর ফিক্সড মেকানিজম
             if (hlsInstance) {
                 hlsInstance.destroy();
                 hlsInstance = null;
             }
+            try {
+                await player.unload(); 
+            } catch(e){}
 
             const streamUrl = currentServer.url;
 
@@ -651,17 +686,19 @@
                 currentQualityLabel.innerText = 'HLS Live';
                 if (Hls.isSupported()) {
                     hlsInstance = new Hls({ 
-                        maxBufferSize: 50 * 1000 * 1000, 
-                        maxBufferLength: 35, 
+                        maxBufferSize: 30 * 1000 * 1000, 
+                        maxBufferLength: 20, 
                         liveSyncDurationCount: 3,
                         enableWorker: true,
-                        lowLatencyMode: false,
-                        abrEwmaDefaultEstimate: 15000000, 
-                        appendErrorMaxRetry: 10
+                        lowLatencyMode: true,
+                        abrEwmaDefaultEstimate: 10000000, 
+                        appendErrorMaxRetry: 5
                     });
                     hlsInstance.loadSource(streamUrl);
                     hlsInstance.attachMedia(video);
                     hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                        loader.style.opacity = '0'; // ম্যানিফেস্ট পাৰ্স হলেই কানেক্টিং টেক্সট হাইড হবে
+                        stopFallbackTimer();
                         video.play().catch(() => {
                             video.muted = true; 
                             video.play().catch(()=>{});
@@ -678,6 +715,8 @@
                 try {
                     player.configure({ drm: { clearKeys: currentServer.clearKeys } });
                     await player.load(streamUrl);
+                    loader.style.opacity = '0';
+                    stopFallbackTimer();
                     video.play().catch(() => {
                         video.muted = true;
                         video.play().catch(()=>{});
@@ -719,7 +758,10 @@
         });
 
         video.addEventListener('waiting', () => {
-            statusText.innerText = "BUFFERING...";
+            // প্লেব্যাক যদি অলরেডি রানিং থাকে তাহলে হুট করে "CONNECTING" ওএসডি পপআপ করা বন্ধ করবে
+            if (video.currentTime > 0.1) {
+                statusText.innerText = "BUFFERING...";
+            }
             loader.style.opacity = '1';
             if (autoSwitchEnabled) startFallbackTimer();
             clearTimeout(uiMasterTimer);
@@ -875,9 +917,7 @@
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } else {
-                // Volume Adjustments Safely Fixed (No UI Thread Block)
                 if (deltaY <= 0) {
-                    // ভলিউম কমানোর লজিক
                     if (startGain > 1.01) {
                         let calculatedGain = startGain + (deltaY / 250);
                         let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
@@ -895,7 +935,6 @@
                         showOSD(newVol <= 0.02 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
                     }
                 } else if (deltaY > 0) {
-                    // ভলিউম বাড়ানো এবং বুস্ট ট্রিগার লজিক
                     if (startVol < 0.98) {
                         let newVol = startVol + (deltaY / 300);
                         video.volume = Math.min(1, newVol);
