@@ -28,12 +28,11 @@
             touch-action: none; 
             overflow: hidden !important; 
             display: block !important;
-            /* নচ স্ক্রিনের জন্য ফুল সেফ এরিয়া কাভারেজ */
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         
-        /* Video Object Fit Styles for Cyclic Switching */
-        video { width: 100% !important; height: 100% !important; background: #000; display: block !important; transition: object-fit 0.2s ease; }
+        /* Video Object Fit Styles with Absolute Reset to fix Left-side stretching */
+        video { width: 100% !important; height: 100% !important; background: #000; display: block !important; transition: object-fit 0.2s ease; margin: 0 !important; padding: 0 !important; left: 0 !important; top: 0 !important; }
         video.fit-contain { object-fit: contain !important; }
         video.fit-stretch { object-fit: fill !important; }
         video.fit-cover { object-fit: cover !important; }
@@ -98,7 +97,7 @@
         .server-popup button.server-item-btn:hover, .quality-popup button.quality-item-btn:hover { background: rgba(225, 29, 72, 0.1); color: #fff; }
         .server-popup button.server-item-btn.active, .quality-popup button.quality-item-btn.active { background: #E11D48; color: #fff; }
         
-        /* ⚡ EXTENDED ADVANCED METADATA BOX */
+        /* EXTENDED ADVANCED METADATA BOX */
         .info-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); border-radius: 12px; padding: 16px; display: none; flex-direction: column; gap: 10px; width: 280px; z-index: 200; box-shadow: 0 20px 50px rgba(0,0,0,0.9); color: #fff; }
         .info-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px; margin-bottom: 2px; }
         .info-title { font-size: 11px; font-weight: 700; color: #E11D48; letter-spacing: 0.8px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; }
@@ -108,7 +107,7 @@
         .info-row { display: flex; justify-content: space-between; font-size: 10.5px; font-weight: 500; color: rgba(255, 255, 255, 0.65); padding: 2px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
         .info-val { color: #fff; font-weight: 700; font-family: monospace; text-shadow: 0 0 5px rgba(255,255,255,0.1); }
 
-        /* Gorgeous Centered Play Overlay Button */
+        /* Centered Play Overlay Button */
         .cool-play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
         .cool-play-btn { width: 60px; height: 60px; background: rgba(10, 10, 10, 0.8); border: 2px solid #E11D48; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; box-shadow: 0 0 20px rgba(225, 29, 72, 0.4); backdrop-filter: blur(8px); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .cool-play-btn span { color: #fff; font-size: 30px; margin-left: 2px; }
@@ -220,13 +219,56 @@
     let fallbackTimer = null;
     let uiMasterTimer = null;
     let stealthResetTimer = null;
-    const LOAD_TIMEOUT = 12000; // নেটওয়ার্ক ফোর্স ট্রিগার দ্রুত করার জন্য ১২ সেকেন্ড করা হলো
+    const LOAD_TIMEOUT = 12000;
 
-    // এসপেক্ট রেশিও ট্র্যাকিং স্টেট
-    let currentFitState = 0; // 0 = Contain, 1 = Stretch, 2 = Cover
+    let currentFitState = 0; 
 
     let hlsInstance = null; 
     let player = null; 
+
+    // Advanced Audio Boost Context Hooks (DDP Safe Node Chaining)
+    let audioCtx = null;
+    let gainNode = null;
+    let compressorNode = null;
+    let sourceNode = null;
+    let audioBoostMultiplier = 1.0; // Base Node Range (100%)
+
+    function initAudioBoostEngine() {
+        if (audioCtx) return;
+        try {
+            const video = document.getElementById('video');
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            sourceNode = audioCtx.createMediaElementSource(video);
+            
+            compressorNode = audioCtx.createDynamicsCompressor();
+            compressorNode.threshold.setValueAtTime(-24, audioCtx.currentTime);
+            compressorNode.knee.setValueAtTime(30, audioCtx.currentTime);
+            compressorNode.ratio.setValueAtTime(12, audioCtx.currentTime);
+            compressorNode.attack.setValueAtTime(0.003, audioCtx.currentTime);
+            compressorNode.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+            gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(1.0, audioCtx.currentTime);
+
+            sourceNode.connect(compressorNode);
+            compressorNode.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            console.log("MultiShows Premium Audio System Integrated Successfully.");
+        } catch(e) {
+            console.error("Audio Boost Context Blocked By Browser Environment:", e);
+        }
+    }
+
+    function setAudioBoostLevel(multiplier) {
+        initAudioBoostEngine();
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        if (gainNode) {
+            audioBoostMultiplier = Math.max(1.0, Math.min(3.0, multiplier)); // Soft Limit max 300%
+            gainNode.gain.setValueAtTime(audioBoostMultiplier, audioCtx.currentTime);
+        }
+    }
 
     async function fetchSecureServers() {
         try {
@@ -281,25 +323,33 @@
 
         player = new shaka.Player(video);
         
-        // ⚡ এগ্রেসিভ বাফারিং কনফিগারেশন: নেটওয়ার্ক স্পিড যেন ফুল টেনে নেয়
+        // Dynamic Network Filters For Secure Cloudflare Key Authorization
+        player.getNetworkingEngine().registerRequestFilter(function(type, request) {
+            if (type == shaka.net.NetworkingEngine.RequestType.LICENSE || request.uris[0].includes('cloudflare')) {
+                request.headers['Origin'] = window.location.origin;
+                request.headers['X-Requested-With'] = 'XMLHttpRequest';
+                request.allowCrossRedditCredentials = true;
+            }
+        });
+        
         player.configure({
             streaming: { 
-                lowLatencyMode: false, // লাইভ স্ট্রিম ট্র্যাকিং বাড়ানোর জন্য ফ্লুইড বাফারিং অফ
-                bufferingGoal: 30,     // বাফার গোল বাড়িয়ে ৩০ সেকেন্ড করা হলো যেন ব্যাকগ্রাউন্ডে ফুল স্পিড টানে
-                rebufferingGoal: 4, 
+                lowLatencyMode: false,
+                bufferingGoal: 45,     // Boosted buffering stream goals to pull max connection rate
+                rebufferingGoal: 8, 
                 bufferBehind: 15, 
                 ignoreDeviceCapability: true,
                 alwaysKeepInSync: true,
-                stallThreshold: 1.5,   // সামান্য বাফারিং হলে যেন দ্রুত রিকভারি শুরু করে
+                stallThreshold: 1.5,
                 retryParameters: {
-                    maxAttempts: 4,
-                    baseDelay: 500,
+                    maxAttempts: 5,
+                    baseDelay: 1000,
                     backoffFactor: 1.5,
-                    timeout: 8000      // সর্বোচ্চ গতিতে সার্ভার রেসপন্স না পাইলে কানেকশন রিস্টার্ট মারবে
+                    timeout: 8000
                 }
             },
             manifest: { dash: { ignoreMinBufferTime: true, multiTypeVariantsAllowed: true }, disableVideo: false },
-            abr: { enabled: true, defaultBandwidthEstimate: 10000000 } // শুরুতে ১০ Mbps ব্যান্ডউইথ এস্টিমেট ট্রিগার করবে
+            abr: { enabled: true, defaultBandwidthEstimate: 12000000 }
         });
 
         player.addEventListener('trackschanged', generateQualityMenu);
@@ -399,7 +449,6 @@
         };
         setInterval(nukeShakaButtons, 300);
 
-        // ⚡ ADVANCED DYNAMIC METADATA DETECTOR
         function updateVideoInfo() {
             if (hlsInstance) {
                 const is4K = video.videoWidth >= 3840 || video.videoHeight >= 2160;
@@ -407,7 +456,7 @@
                 document.getElementById('metaCodec').innerText = "AVC (H.264) / Main Profile";
                 document.getElementById('metaHdr').innerText = "SDR (Standard Range)";
                 document.getElementById('metaBitDepth').innerText = "8-bit Standard";
-                document.getElementById('metaAudio').innerText = "AAC Stereo / Dolby Audio Compatibility";
+                document.getElementById('metaAudio').innerText = audioBoostMultiplier > 1.0 ? `Boosted Core (${Math.round(audioBoostMultiplier*100)}%)` : "AAC Stereo Master";
                 document.getElementById('metaBandwidth').innerText = "Live HLS Streaming Engine";
                 document.getElementById('metaFps').innerText = "60 FPS (Adaptive)";
                 document.getElementById('metaEngine').innerText = "Hls.js Engine Native";
@@ -437,13 +486,13 @@
                     }
 
                     let aCodec = activeTrack.audioCodec || '';
+                    let audioBaseText = "Dolby Digital Plus";
                     if (aCodec.includes('ec-3') || aCodec.includes('ac-3')) {
-                        document.getElementById('metaAudio').innerText = "Dolby Digital Plus (E-AC-3)";
+                        audioBaseText = "Dolby Digital Plus (E-AC-3)";
                     } else if (aCodec.includes('mp4a')) {
-                        document.getElementById('metaAudio').innerText = "Advanced Audio Coding (AAC)";
-                    } else {
-                        document.getElementById('metaAudio').innerText = "Dolby Digital Plus / AAC Native";
+                        audioBaseText = "Advanced Audio Coding (AAC)";
                     }
+                    document.getElementById('metaAudio').innerText = audioBoostMultiplier > 1.0 ? `${audioBaseText} + [Boost ${Math.round(audioBoostMultiplier*100)}%]` : audioBaseText;
 
                     document.getElementById('metaBandwidth').innerText = `${(activeTrack.bandwidth / 1000000).toFixed(2)} Mbps`;
                     document.getElementById('metaFps').innerText = `${Math.round(activeTrack.frameRate || 60)} FPS`;
@@ -456,11 +505,9 @@
 
         player.addEventListener('variantchanged', updateVideoInfo);
 
-        // ⚡ CYCLIC ASPECT RATIO SWITCHER LOGIC (Fit Screen Logic)
         fitScreenBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             currentFitState = (currentFitState + 1) % 3;
-            
             video.classList.remove('fit-contain', 'fit-stretch', 'fit-cover');
             
             if (currentFitState === 0) {
@@ -577,10 +624,20 @@
         video.addEventListener('play', updateCoolPlayBtn);
         video.addEventListener('pause', updateCoolPlayBtn);
 
+        window.getSafeServerIndex = function (currentServerIndex) {
+            let nextIndex = parseInt(currentServerIndex, 10);
+            if (isNaN(nextIndex)) {
+                console.warn("Detected NaN in server switching. Safe fallback to Server 1.");
+                return 0; 
+            }
+            return nextIndex;
+        };
+
         async function loadServer(index) {
             if (!serverList || serverList.length === 0) return;
-            if (index >= serverList.length) index = 0;
-            currentServerIndex = index;
+            let safeIdx = window.getSafeServerIndex(index);
+            if (safeIdx >= serverList.length) safeIdx = 0;
+            currentServerIndex = safeIdx;
             const currentServer = serverList[currentServerIndex];
             currentServerLabel.innerText = currentServer.name;
 
@@ -599,16 +656,14 @@
             if (streamUrl.includes('.ts') || streamUrl.includes('.m3u8')) {
                 currentQualityLabel.innerText = 'HLS Live';
                 if (Hls.isSupported()) {
-                    // ⚡ HIGH CONGESTION HLS SETTINGS FOR MAX BANDWIDTH EXTRACTION
                     hlsInstance = new Hls({ 
-                        maxBufferSize: 30 * 1000 * 1000, // ৩০ মেগাবাইট বাফার জোরপূর্বক হোল্ড করবে
-                        maxBufferLength: 20, 
+                        maxBufferSize: 35 * 1000 * 1000, 
+                        maxBufferLength: 25, 
                         liveSyncDurationCount: 3,
                         enableWorker: true,
                         lowLatencyMode: false,
-                        // স্লো ইন্টারনেট বা লোড প্রেশারে স্পিড ড্রপ আটকাতে কনফিগারেশন
-                        abrEwmaDefaultEstimate: 10000000, 
-                        appendErrorMaxRetry: 5
+                        abrEwmaDefaultEstimate: 12000000, 
+                        appendErrorMaxRetry: 6
                     });
                     hlsInstance.loadSource(streamUrl);
                     hlsInstance.attachMedia(video);
@@ -644,7 +699,8 @@
         function handleStreamFailure() {
             stopFallbackTimer();
             if (!autoSwitchEnabled) { statusText.innerText = "BUFFERING (AUTO SWITCH OFF)..."; return; }
-            let nextIndex = (currentServerIndex + 1) % serverList.length;
+            let safeCurrent = window.getSafeServerIndex(currentServerIndex);
+            let nextIndex = (safeCurrent + 1) % serverList.length;
             statusText.innerHTML = `<span style='color:#E11D48;'>TIMEOUT! SWITCHING TO SERVER ${nextIndex + 1}...</span>`;
             loader.style.opacity = '1';
             setTimeout(() => { loadServer(nextIndex); }, 2000);
@@ -658,6 +714,8 @@
             resetMasterTimer();
             nukeShakaButtons();
             updateVideoInfo();
+            // Initialize Audio boost mapping on actual user playback kickstart
+            initAudioBoostEngine();
         });
 
         video.addEventListener('waiting', () => {
@@ -780,7 +838,7 @@
         const gOsd = document.getElementById('gestureOsd');
         const gIcon = document.getElementById('gestureIcon');
         const gValue = document.getElementById('gestureValue');
-        let startX, startY, startVol, startBright;
+        let startX, startY, startVol, startBright, startGain;
         let osdTimeout;
 
         function showOSD(icon, value) {
@@ -798,6 +856,13 @@
             startY = touch.clientY;
             startVol = video.volume;
             startBright = brightness;
+            
+            initAudioBoostEngine();
+            startGain = gainNode ? gainNode.gain.value : 1.0;
+            
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             resetMasterTimer();
         });
 
@@ -807,6 +872,7 @@
             const deltaY = startY - touch.clientY;
             const sensitivity = 0.35;
             const screenWidth = container.clientWidth;
+            
             if (startX < screenWidth / 2) {
                 let newBright = startBright + (deltaY * sensitivity);
                 newBright = Math.max(10, Math.min(100, newBright));
@@ -814,10 +880,21 @@
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } else {
-                let newVol = startVol + (deltaY / 350);
-                newVol = Math.max(0, Math.min(1, newVol));
-                video.volume = newVol;
-                showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
+                // Volume + Boost Intelligent Multimapping Gesture
+                if (startVol < 1.0 || deltaY < 0 && video.volume < 1.0 && startGain <= 1.01) {
+                    // Standard Track Range Control
+                    let newVol = startVol + (deltaY / 300);
+                    newVol = Math.max(0, Math.min(1, newVol));
+                    video.volume = newVol;
+                    setAudioBoostLevel(1.0); // Keep normal node
+                    showOSD(newVol === 0 ? 'volume_off' : 'volume_up', Math.round(newVol * 100) + '%');
+                } else {
+                    // Boost Mode Activated (>100%)
+                    let calculatedGain = startGain + (deltaY / 250);
+                    let targetBoost = Math.max(1.0, Math.min(3.0, calculatedGain));
+                    setAudioBoostLevel(targetBoost);
+                    showOSD('volume_up', `Boost ${Math.round(targetBoost * 100)}% 🚀`);
+                }
             }
             resetMasterTimer();
         });
