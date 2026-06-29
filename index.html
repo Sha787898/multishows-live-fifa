@@ -51,7 +51,7 @@
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 12px rgba(225, 29, 72, 0.7); }
         .shaka-seek-bar-container .shaka-seek-bar-buffered { background: rgba(255, 255, 255, 0.25) !important; }
         
-        /* Watermark Auto Hide/Scale on small containers */
+        /* Watermark */
         .video-watermark { position: absolute; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.6); padding: 4px 8px; border-radius: 4px; z-index: 100; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(4px); text-decoration: none !important; }
         .video-watermark span { color: rgba(255, 255, 255, 0.8); font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
         
@@ -63,8 +63,10 @@
         .top-btn span.material-icons { font-size: 11px; }
         .top-btn:hover { background: #E11D48; color: #fff; border-color: #E11D48; }
         
-        #lockBtn { display: none; }
-        .is-fullscreen #lockBtn { display: flex; }
+        /* Hide Lock and Fit Button by Default in Normal Screen Mode */
+        #lockBtn, #fitScreenBtn { display: none; }
+        /* Only show inside Fullscreen Class Container */
+        .is-fullscreen #lockBtn, .is-fullscreen #fitScreenBtn { display: flex; }
         
         /* Popups styling fixes */
         .server-popup, .quality-popup { position: absolute; top: 38px; left: 10px; background: rgba(12, 12, 12, 0.98); backdrop-filter: blur(8px); border: 1px solid rgba(225, 29, 72, 0.4); border-radius: 6px; padding: 6px; display: none; flex-direction: column; gap: 4px; width: 145px; z-index: 101; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
@@ -180,7 +182,7 @@
             sourceNode.connect(compressorNode);
             compressorNode.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-        } catch(e) { console.log("AudioContext blocked initial touch."); }
+        } catch(e) { console.log("AudioContext state restricted."); }
     }
 
     function setAudioBoostLevel(multiplier) {
@@ -231,17 +233,15 @@
         const currentServerLabel = document.getElementById('currentServerLabel');
         const coolPlayOverlay = document.getElementById('coolPlayOverlay');
         const coolPlayBtn = document.getElementById('coolPlayBtn');
-        const coolPlayIcon = document.getElementById('coolPlayIcon');
         const fitScreenBtn = document.getElementById('fitScreenBtn');
         const fitScreenLabel = document.getElementById('fitScreenLabel');
 
         player = new shaka.Player(video);
         
-        // Balanced Buffering setup to avoid continuous heavy data load
         player.configure({
             streaming: { 
                 lowLatencyMode: false,
-                bufferingGoal: 30,     // 30 seconds buffer for maximum stability
+                bufferingGoal: 30,     
                 rebufferingGoal: 6,   
                 bufferBehind: 15, 
                 stallThreshold: 4.0
@@ -463,6 +463,12 @@
                 lockIcon.innerText = 'lock_open'; fsIcon.innerText = 'fullscreen';
                 brightness = 100; document.getElementById('brightnessOverlay').style.opacity = 0;
                 setAudioBoostLevel(1.0); video.volume = 1.0;
+                
+                // Reset Video Fit to normal when exiting fullscreen mode
+                currentFitState = 0;
+                video.className = "shaka-video fit-contain";
+                fitScreenLabel.innerText = "Fit";
+                
                 showAllControls();
             } else {
                 isPlayerFullscreen = true;
@@ -470,7 +476,7 @@
             }
         });
 
-        // FIXED Touch Gestures: Works ONLY in Fullscreen to prevent inline bugs/skips
+        // Touch Gestures (Only Active in Fullscreen)
         const bOverlay = document.getElementById('brightnessOverlay');
         const gOsd = document.getElementById('gestureOsd');
         const gIcon = document.getElementById('gestureIcon');
@@ -504,7 +510,6 @@
             const sensitivity = 0.4;
             const screenWidth = container.clientWidth;
             
-            // Left Side = Brightness Control
             if (startX < screenWidth / 2) {
                 let newBright = startBright + (deltaY * sensitivity);
                 newBright = Math.max(10, Math.min(100, newBright));
@@ -512,14 +517,12 @@
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } 
-            // Right Side = Volume & Booster Control
             else {
-                e.preventDefault(); // Stop native scrolling/skips on swipe
+                e.preventDefault(); 
                 
-                // Safe Volume Down / Up Math
                 if (deltaY < 0 && startGain <= 1.02) {
                     let newVol = startVol + (deltaY / 250);
-                    newVol = Math.max(0.01, Math.min(1.0, newVol)); // Prevent hitting true 0 absolute baseline to avoid hard mute locks
+                    newVol = Math.max(0.01, Math.min(1.0, newVol)); 
                     video.volume = newVol;
                     setAudioBoostLevel(1.0);
                     showOSD('volume_up', Math.round(newVol * 100) + '%');
