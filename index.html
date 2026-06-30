@@ -12,7 +12,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         html, body { background: #000; height: 100%; width: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; }
         
-        /* ফুলস্ক্রিনে সাইডের ফাঁকা অংশ দূর করার জন্য প্যাডিং সরানো হয়েছে */
         .shaka-video-container { 
             position: relative; 
             width: 100vw !important; 
@@ -32,7 +31,6 @@
         
         .shaka-controls-container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; background: transparent !important; box-sizing: border-box !important; }
         
-        /* কন্ট্রোল বারকে সঠিক মাত্রায় রাখার জন্য সেফ এরিয়া অ্যাডজাস্টমেন্ট */
         .shaka-bottom-controls {
             padding: 0 calc(16px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)) !important;
         }
@@ -43,9 +41,8 @@
 
         .shaka-play-pause-button, .shaka-mute-button, .shaka-picture-in-picture-button, .shaka-fullscreen-button { color: #E11D48 !important; }
         .shaka-seek-bar-container .shaka-seek-bar-played { background: #E11D48 !important; box-shadow: 0 0 12px rgba(225, 29, 72, 0.7); }
-        .shaka-seek-bar-container .shaka-seek-bar-buffered { background: rgba(255, 255, 255, 0.25) !important; }
+        .shaka-seek-bar-container .shaka-seek-bar-buffered { background: rgba(255, 255, 255, 0.3) !important; }
         
-        /* নচ ডিভাইসের জন্য UI প্যানেলে সেফ এরিয়া পুশ করা হয়েছে */
         .video-watermark { 
             position: absolute; 
             top: calc(12px + env(safe-area-inset-top)); 
@@ -231,12 +228,12 @@
     let fallbackTimer = null;
     let uiMasterTimer = null;
     let stealthResetTimer = null;
-    const LOAD_TIMEOUT = 7000; // নেটওয়ার্ক ফেইলভার ফাস্ট করার জন্য ৭ সেকেন্ড করা হলো
+    const LOAD_TIMEOUT = 6000; // নেটওয়ার্ক ফেইলভার টাইমআউট কমিয়ে ৬ সেকেন্ড করা হলো যাতে অটো-সুইচ ফাস্ট হয়
     let currentFitState = 0; 
     let hlsInstance = null; 
     let player = null; 
 
-    // Audio Engine Setup
+    // Audio Context Engine
     let audioCtx = null;
     let gainNode = null;
     let compressorNode = null;
@@ -345,20 +342,25 @@
             }
         });
         
-        // এগ্রেসিভ বাফারিং ও টাইট কানেক্টিভিটি লোড রুলস
+        // --- 🚀 সুপার স্মুথ বাফারিং এবং প্লেব্যাক কনফিগারেশন ---
+        // লো-ল্যাটেন্সি লজিক্যাল কনফ্লিক্ট দূর করা হয়েছে এবং প্রিমিয়াম ওড ইন্টারনাল বাফারিং রুলস দেওয়া হয়েছে
         player.configure({
             streaming: { 
-                lowLatencyMode: true,
-                bufferingGoal: 45,     
-                rebufferingGoal: 3,   
-                bufferBehind: 10, 
+                lowLatencyMode: false, // এটি ফলস করা হয়েছে যাতে বাফারিং ইঞ্জিনের সাথে কোনো কনফ্লিক্ট না হয়
+                bufferingGoal: 12,     // অন্য সাইটের মতো এখানে ১২ সেকেন্ড করা হয়েছে, ৪৫ সেকেন্ডের জ্যাম দূর হবে!
+                rebufferingGoal: 2.5,   // ২.৫ সেকেন্ড লোড হলেই ভিডিও ইনস্ট্যান্টলি প্লেব্যাক রিজিউম করবে
+                bufferBehind: 15, 
                 ignoreDeviceCapability: true,
                 alwaysKeepInSync: true,
-                stallThreshold: 0.5,   
-                retryParameters: { maxAttempts: 8, baseDelay: 500, backoffFactor: 1.5, timeout: 4000 }
+                stallThreshold: 1.0,   // সামান্য সিগন্যাল ওঠানামায় ভিডিও আর হুট করে আটকে 'BUFFERING' দেখাবে না
+                retryParameters: { maxAttempts: 5, baseDelay: 1000, backoffFactor: 1.5, timeout: 5000 }
             },
             manifest: { dash: { ignoreMinBufferTime: true, multiTypeVariantsAllowed: true }, disableVideo: false },
-            abr: { enabled: true, defaultBandwidthEstimate: 15000000 } 
+            abr: { 
+                enabled: true, 
+                defaultBandwidthEstimate: 3500000, // একটি অপ্টিমাইজড মিড-রেঞ্জ ব্যান্ডউইথ দিয়ে শুরু হবে যাতে ফার্স্ট প্লে ইনস্ট্যান্ট হয়
+                switchInterval: 4
+            } 
         });
 
         player.addEventListener('trackschanged', generateQualityMenu);
@@ -498,7 +500,7 @@
         ui.configure({
             controlPanelElements: [ 'play_pause', 'mute', 'time_and_duration', 'spacer', 'picture_in_picture', 'fullscreen' ],
             addPlayPauseButton: true,
-            seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.25)', played: 'rgb(225, 29, 72)' }
+            seekBarColors: { base: 'rgba(255, 255, 255, 0.12)', buffered: 'rgba(255, 255, 255, 0.3)', played: 'rgb(225, 29, 72)' }
         });
 
         const shakaControls = document.querySelector('.shaka-controls-container');
@@ -698,13 +700,14 @@
             if (streamUrl.includes('.ts') || streamUrl.includes('.m3u8')) {
                 currentQualityLabel.innerText = 'HLS Live';
                 if (Hls.isSupported()) {
+                    // --- ⚡ Hls.js ইঞ্জিন ও ব্যান্ডউইথ অপ্টিমাইজেশন ---
                     hlsInstance = new Hls({ 
-                        maxBufferSize: 40 * 1000 * 1000, 
-                        maxBufferLength: 25, 
+                        maxBufferSize: 60 * 1024 * 1024, // ৬০ মেগাবাইটে আপগ্রেড করা হয়েছে স্মুথ ড্রপের জন্য
+                        maxBufferLength: 20, 
                         liveSyncDurationCount: 3,
                         enableWorker: true,
-                        lowLatencyMode: true,
-                        abrEwmaDefaultEstimate: 12000000, 
+                        lowLatencyMode: false, // ল্যাগিং কমাতে ও বাফার সলিড রাখতে ফলস করা হয়েছে
+                        abrEwmaDefaultEstimate: 15000000, 
                         appendErrorMaxRetry: 5
                     });
                     hlsInstance.loadSource(streamUrl);
@@ -886,12 +889,12 @@
         const gIcon = document.getElementById('gestureIcon');
         const gValue = document.getElementById('gestureValue');
         
-        // --- প্রো-লেভেল জেসচার ও এরিয়া সেপারেশন লজিক ---
+        // --- 🎯 প্রটেক্টেড টাচ এরিয়া ও জেসচার লজিক ---
         let startX, startY, startVol, startBright, startGain;
         let osdTimeout;
         let lastTapTime = 0;
         let isMoving = false;
-        const TOUCH_THRESHOLD = 40; // মিস-টাচ ও অতিরিক্ত সংবেদনশীলতা রোধে থ্রেশহোল্ড বাড়ানো হলো
+        const TOUCH_THRESHOLD = 40; // মিস-টাচ রুখতে থ্রেশহোল্ড বাড়ানো হয়েছে
 
         function showOSD(icon, value) {
             gIcon.innerText = icon;
@@ -908,13 +911,12 @@
             const touchX = touch.clientX - rect.left;
             const touchY = touch.clientY - rect.top;
             
-            // সেফ জোন প্রোটেকশন (শীর্ষ ১৫% এবং নিম্ন ১৫% এরিয়া জেসচার থেকে মুক্ত)
             if (touchY < rect.height * 0.15 || touchY > rect.height * 0.85) {
                 isMoving = false;
                 return; 
             }
             
-            // ডাবল ট্যাপ অ্যাকশন কেবল বাম ও ডান পাশের ৩৫% কলামে কাজ করবে (মাঝখানে কাজ করবে না)
+            // ডাবল ট্যাপ অ্যাকশন কেবল বাম ও ডান পাশের ৩৫% কলামে সীমাবদ্ধ (মাঝখানের ৩০% সুরক্ষিত)
             if (now - lastTapTime < 250 && !isLocked) {
                 if (touchX < rect.width * 0.35 || touchX > rect.width * 0.65) {
                     e.preventDefault();
@@ -959,7 +961,7 @@
             
             if (touchY < rect.height * 0.15 || touchY > rect.height * 0.85) return;
             
-            // মাঝখানের ৩০% এরিয়া সম্পূর্ণ ব্লকড (ভলিউম বা ব্রাইটনেস চেঞ্জ হবে না)
+            // মাঝখানের ৩০% এরিয়া লকড (কোনো ভুল জেসচার ভলিউম/ব্রাইটনেস ট্রিগার করবে না)
             if (touchX >= rect.width * 0.35 && touchX <= rect.width * 0.65) {
                 return; 
             }
@@ -975,14 +977,14 @@
             const sensitivity = 0.12; 
             
             if (touchX < rect.width * 0.35) {
-                // 🌗 বাম ৩৫% কলাম: ব্রাইটনেস জেসচার
+                // 🌗 বাম ৩৫%: ব্রাইটনেস
                 let newBright = startBright + (deltaY * sensitivity * 2);
                 newBright = Math.max(10, Math.min(100, newBright));
                 brightness = newBright;
                 bOverlay.style.opacity = (100 - brightness) / 100 * 0.85;
                 showOSD('brightness_6', Math.round(brightness) + '%');
             } else if (touchX > rect.width * 0.65) {
-                // 🔊 ডান ৩৫% কলাম: ভলিউম ও বুস্টার জেসচার
+                // 🔊 ডান ৩৫%: ভলিউম ও প্রো-বুস্টার
                 if (deltaY <= 0) {
                     if (startGain > 1.01) {
                         let calculatedGain = startGain + (deltaY * sensitivity / 20);
